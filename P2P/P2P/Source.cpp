@@ -3,28 +3,30 @@
 #include <string>
 #include <WinSock2.h>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #pragma warning(disable: 4996)
 
 #define PORT 5078
 
 int main()
 {
+	WSADATA wsa_data = { };
+	if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
+		throw std::exception("WSAStartup Failed");
 	std::string input = "";
 	std::cout << "Would you like to open a network?\n";
 	std::cin >> input;
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == INVALID_SOCKET)
 		throw std::exception(__FUNCTION__ " - socket");
+	struct sockaddr_in sa = { 0 };
+
+	sa.sin_port = htons(PORT); // port that server will listen for
+	sa.sin_family = AF_INET;   // must be AF_INET
 	if (input == "a")
 	{
-		
 
-		
-
-		struct sockaddr_in sa = { 0 };
-
-		sa.sin_port = htons(PORT); // port that server will listen for
-		sa.sin_family = AF_INET;   // must be AF_INET
 		sa.sin_addr.s_addr = INADDR_ANY;    // when there are few ip's for the machine. We will use always "INADDR_ANY"
 
 		// Connects between the socket and the configuration (port and etc..)
@@ -55,9 +57,6 @@ int main()
 		input = "";
 		std::cout << "enter IP of network\n";
 		std::cin >> input;
-		struct sockaddr_in sa = { 0 };
-		sa.sin_port = htons(PORT); // port that server will listen for 
-		sa.sin_family = AF_INET;   // must be AF_INET 
 		sa.sin_addr.s_addr = inet_addr(input.c_str());
 		connect(sock, (struct sockaddr*)&sa, sizeof(sa));
 
