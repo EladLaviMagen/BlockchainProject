@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <thread>
+#include "Helper.h"
 #pragma comment(lib, "ws2_32.lib")
 #pragma warning(disable: 4996)
 
@@ -62,6 +64,8 @@ int main() {
         }
 
         std::cout << "Peer connected\n";
+        std::string msg = Helper::getStringPartFromSocket(clientSocket, 1024);
+        std::cout << msg;
         while (true);
         // Handle communication with connected peer
 
@@ -92,6 +96,8 @@ int main() {
         }
         
         std::cout << "Connected to loopback\n";
+        std::cin >> input;
+        Helper::sendData(clientSocket, input);
         while (true);
         // Handle communication with the server
 
