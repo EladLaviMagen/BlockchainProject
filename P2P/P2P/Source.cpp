@@ -5,9 +5,10 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#pragma warning(disable: 4996)
 #pragma comment(lib, "ws2_32.lib")
+#pragma warning(disable: 4996)
 
+#define SERVER_IP "127.0.0.1"
 #define PORT 5078
 
 int main() {
@@ -69,8 +70,7 @@ int main() {
     }
     else
     {
-        std::cout << "Enter server IP : ";
-        std::cin >> input;
+       
         SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (clientSocket == INVALID_SOCKET) {
             std::cerr << "Error creating socket\n";
@@ -80,7 +80,7 @@ int main() {
 
         sockaddr_in serverAddr;
         serverAddr.sin_family = AF_INET;
-        serverAddr.sin_addr.s_addr = inet_addr("1.0.0.127");
+        serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
         serverAddr.sin_port = htons(PORT);
 
         if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
@@ -90,11 +90,10 @@ int main() {
             WSACleanup();
             return 1;
         }
-
-        std::cout << "Connected to peer\n";
+        
+        std::cout << "Connected to loopback\n";
         while (true);
-
-        // Handle communication with connected peer
+        // Handle communication with the server
 
         closesocket(clientSocket);
         
