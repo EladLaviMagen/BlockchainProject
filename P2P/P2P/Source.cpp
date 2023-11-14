@@ -6,61 +6,104 @@
 #include <iomanip>
 #include <sstream>
 #pragma warning(disable: 4996)
+#pragma comment(lib, "ws2_32.lib")
 
 #define PORT 5078
 
-int main()
-{
-	WSADATA wsa_data = { };
-	if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
-		throw std::exception("WSAStartup Failed");
-	std::string input = "";
-	std::cout << "Would you like to open a network?\n";
-	std::cin >> input;
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET)
-		throw std::exception(__FUNCTION__ " - socket");
-	struct sockaddr_in sa = { 0 };
+int main() {
+    std::string input = "";
+    std::cout << "Enter 'a' for server, anything else for client\n";
+    std::cin >> input;
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "WSAStartup failed\n";
+        return 1;
+    }
+    if (input == "a")
+    {
+      
 
-	sa.sin_port = htons(PORT); // port that server will listen for
-	sa.sin_family = AF_INET;   // must be AF_INET
-	if (input == "a")
-	{
+        SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (listenSocket == INVALID_SOCKET) {
+            std::cerr << "Error creating socket\n";
+            WSACleanup();
+            return 1;
+        }
 
-		sa.sin_addr.s_addr = INADDR_ANY;    // when there are few ip's for the machine. We will use always "INADDR_ANY"
+        sockaddr_in serverAddr;
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = INADDR_ANY;
+        serverAddr.sin_port = htons(PORT);
 
-		// Connects between the socket and the configuration (port and etc..)
-		if (bind(sock, (struct sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR)
-			throw std::exception(__FUNCTION__ " - bind");
+        if (bind(listenSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+            std::cerr << "Bind failed\n";
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
 
-		// Start listening for incoming requests of clients
-		if (listen(sock, SOMAXCONN) == SOCKET_ERROR)
-			throw std::exception(__FUNCTION__ " - listen");
-		std::cout << "Listening on port " << PORT << std::endl;
+        if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+            std::cerr << "Listen failed\n";
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
 
-		// this accepts the client and create a specific socket from server to this client
-			// the process will not continue until a client connects to the server
-		SOCKET client_socket = accept(sock, NULL, NULL);
-		if (client_socket == INVALID_SOCKET)
-			throw std::exception(__FUNCTION__);
+        std::cout << "Waiting for incoming connections...\n";
+        sockaddr_in clientAddr;
+        int addrLen = sizeof(clientAddr);
+        SOCKET clientSocket = accept(listenSocket, (struct sockaddr*)&clientAddr, &addrLen);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "Accept failed\n";
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
 
-		std::cout << "Client accepted. Server and client can speak" << std::endl;
+        std::cout << "Peer connected\n";
+        while (true);
+        // Handle communication with connected peer
 
-		while (true)
-		{
+        closesocket(clientSocket);
+        closesocket(listenSocket);
+    }
+    else
+    {
+        std::cout << "Enter server IP : ";
+        std::cin >> input;
+        SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "Error creating socket\n";
+            WSACleanup();
+            return 1;
+        }
 
-			//m_clients[client_socket] = handler;
-		}
-	}
-	else
-	{
-		input = "";
-		std::cout << "enter IP of network\n";
-		std::cin >> input;
-		sa.sin_addr.s_addr = inet_addr(input.c_str());
-		connect(sock, (struct sockaddr*)&sa, sizeof(sa));
+        sockaddr_in serverAddr;
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = inet_addr("1.0.0.127");
+        serverAddr.sin_port = htons(PORT);
 
-	}
-	
+        if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            std::cerr << "Connection failed with error: " << error << "\n";
+            closesocket(clientSocket);
+            WSACleanup();
+            return 1;
+        }
+
+        std::cout << "Connected to peer\n";
+        while (true);
+
+        // Handle communication with connected peer
+
+        closesocket(clientSocket);
+        
+
+    }
+
+    
+
+
+    WSACleanup();
     return 0;
 }
