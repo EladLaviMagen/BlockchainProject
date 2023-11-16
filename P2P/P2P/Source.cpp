@@ -13,10 +13,13 @@
 #define SERVER_IP "127.0.0.1"
 #define PORT 5078
 
+void recieveMessage(SOCKET sc);
+
 int main() {
     std::string input = "";
     std::cout << "Enter 'a' for server, anything else for client\n";
     std::cin >> input;
+    
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "WSAStartup failed\n";
@@ -64,9 +67,14 @@ int main() {
         }
 
         std::cout << "Peer connected\n";
-        std::string msg = Helper::getStringPartFromSocket(clientSocket, 1024);
-        std::cout << msg;
-        while (true);
+        std::thread t(recieveMessage, clientSocket);
+        t.detach();
+        input = "";
+        while (input != "exit")
+        {
+            std::cin >> input;
+            Helper::sendData(clientSocket, input);
+        }
         // Handle communication with connected peer
 
         closesocket(clientSocket);
@@ -96,9 +104,14 @@ int main() {
         }
         
         std::cout << "Connected to loopback\n";
-        std::cin >> input;
-        Helper::sendData(clientSocket, input);
-        while (true);
+        std::thread t(recieveMessage, clientSocket);
+        t.detach();
+        input = "";
+        while (input != "exit")
+        {
+            std::cin >> input;
+            Helper::sendData(clientSocket, input);
+        }
         // Handle communication with the server
 
         closesocket(clientSocket);
@@ -111,4 +124,15 @@ int main() {
 
     WSACleanup();
     return 0;
+}
+
+
+void recieveMessage(SOCKET sc)
+{
+    while (true)
+    {
+        std::string msg = Helper::getStringPartFromSocket(sc, 30);
+        std::cout << msg << std::endl;
+    }
+    
 }
