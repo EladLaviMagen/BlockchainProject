@@ -13,7 +13,7 @@
 
 #define SERVER_IP "127.0.0.1"
 #define PORT 5078
-
+int port = 0;
 //Declarations
 void recieveMessageAndHandle(SOCKET sc);
 void connectMoreUsers(SOCKET listenSocket, int port);
@@ -46,7 +46,7 @@ int main()
         //Starting listening for users
         std::thread t(connectMoreUsers, listenSocket, PORT);
         t.detach();
-        
+        port = PORT;
     }
     else
     {
@@ -74,11 +74,11 @@ int main()
         //Setting position in map
         users[PORT] = clientSocket;
         std::cout << "Connected to " << PORT << "\n";
-        int port = 0;
+        port = 0;
         //Client establishes his own port for others to approach him, he sends it to the person he connected to for him to inform the others
         std::cout << "Enter port : ";
         std::cin >> port;
-        Helper::sendData(clientSocket, Helper::getPaddedNumber(port, 5));
+        Helper::sendData(clientSocket, "a" + Helper::getPaddedNumber(port, 5));
         //Calling threads to handle messages and connections of other users
         std::thread t(recieveMessageAndHandle, clientSocket);
         t.detach();
@@ -95,7 +95,7 @@ int main()
         std::cin >> input;
         for (auto it = users.begin(); it != users.end(); it++)
         {
-            Helper::sendData(it->second, input);
+            Helper::sendData(it->second, Helper::getPaddedNumber(input.length(), 5) + input);
         }
 
     }
@@ -153,9 +153,11 @@ void recieveMessageAndHandle(SOCKET sc)
                 closesocket(clientSocket);
                 WSACleanup();
             }
+            Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(port, 5));
             //Assigning position in map
             users[std::atoi(msg.substr(6, finalIndex - 1).c_str())] = clientSocket;
             std::thread t(recieveMessageAndHandle, clientSocket);
+            t.detach();
         }
         //Displaying message
         std::cout << msg << std::endl;
@@ -192,6 +194,7 @@ void connectMoreUsers(SOCKET listenSocket, int port)
         closesocket(listenSocket);
         WSACleanup();
     }
+    
     //Forever listening
     while (true)
     {
@@ -206,17 +209,21 @@ void connectMoreUsers(SOCKET listenSocket, int port)
             WSACleanup();
         }
         //Getting his port
+        std::string flag = Helper::getStringPartFromSocket(clientSocket, 1);
         int port = Helper::getIntPartFromSocket(clientSocket, 5);
         //Setting up message to inform others of the new user
-        std::string enterMsg = "\nUser " + std::to_string(port) + " Entered";
-        std::cout << enterMsg;
-        //Sending it to all other users
-        if (!users.empty())
+        if ("a" == flag)
         {
-            enterMsg = Helper::getPaddedNumber(enterMsg.length(), 5) + enterMsg;
-            for (auto it = users.begin(); it != users.end(); it++)
+            std::string enterMsg = "\nUser " + std::to_string(port) + " Entered\n";
+            std::cout << enterMsg;
+            //Sending it to all other users
+            if (!users.empty())
             {
-                Helper::sendData(it->second, enterMsg);
+                enterMsg = Helper::getPaddedNumber(enterMsg.length(), 5) + enterMsg;
+                for (auto it = users.begin(); it != users.end(); it++)
+                {
+                    Helper::sendData(it->second, enterMsg);
+                }
             }
         }
         //Adding new user to the map
