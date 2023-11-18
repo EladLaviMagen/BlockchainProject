@@ -93,10 +93,29 @@ int main()
 
         }
         std::cin >> input;
-        for (auto it = users.begin(); it != users.end(); it++)
+        if (input[0] == '/')
         {
-            Helper::sendData(it->second, Helper::getPaddedNumber(input.length(), 5) + input);
+            int finalIndex = 1;
+            while (input[finalIndex] != '/')
+            {
+                finalIndex++;
+            }
+            int userPort = std::atoi(input.substr(1, finalIndex - 1).c_str());
+            input = std::to_string(port) + "--> " + input;
+            if (users.find(userPort) != users.end())
+            {
+                Helper::sendData(users[userPort], Helper::getPaddedNumber(input.length(), 5) + input);
+            }
+           
         }
+        else
+        {
+            for (auto it = users.begin(); it != users.end(); it++)
+            {
+                Helper::sendData(it->second, Helper::getPaddedNumber(input.length(), 5) + input);
+            }
+        }
+        
 
     }
     // Handle communication with connected peer
