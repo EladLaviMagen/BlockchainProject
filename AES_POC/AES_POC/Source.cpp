@@ -1,9 +1,10 @@
 #include <iostream>
 #include <cmath>
 
-#define NB 4
+#define SIZE 4
+#define HEX 16
 
-const unsigned char sbox[16][16] = {
+const unsigned char sbox[HEX][HEX] = {
     {0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b,
      0xfe, 0xd7, 0xab, 0x76},
     {0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf,
@@ -37,7 +38,7 @@ const unsigned char sbox[16][16] = {
     {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f,
      0xb0, 0x54, 0xbb, 0x16} };
 
-const unsigned char inv_sbox[16][16] = {
+const unsigned char inv_sbox[HEX][HEX] = {
     {0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e,
      0x81, 0xf3, 0xd7, 0xfb},
     {0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44,
@@ -71,6 +72,18 @@ const unsigned char inv_sbox[16][16] = {
     {0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63,
      0x55, 0x21, 0x0c, 0x7d} };
 
+static const unsigned char CMDS[4][4] = {
+    {2, 3, 1, 1}, {1, 2, 3, 1}, {1, 1, 2, 3}, {3, 1, 1, 2} };
+
+static const unsigned char INV_CMDS[4][4] = {
+    {14, 11, 13, 9}, {9, 14, 11, 13}, {13, 9, 14, 11}, {11, 13, 9, 14} };
+
+void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i, unsigned int n);
+void ShiftRows(unsigned char state[SIZE][SIZE]);
+void SubByets(unsigned char state[SIZE][SIZE]);
+void MixColumns(unsigned char state[SIZE][SIZE]);
+void InvShiftRows(unsigned char state[SIZE][SIZE]);
+void InvSubByets(unsigned char state[SIZE][SIZE]);
 
 int main()
 {
@@ -78,18 +91,75 @@ int main()
     return 0;
 }
 
-void ShiftRow(unsigned char state[4][NB], unsigned int i,unsigned int n)  // shift row i on n positions
+void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i,unsigned int n)  // shift row i on n positions
 {
-    unsigned char tmp[NB];
-    for (unsigned int j = 0; j < NB; j++) 
+    unsigned char tmp[SIZE];
+    for (unsigned int j = 0; j < SIZE; j++)
     {
-        tmp[j] = state[i][(j + n) % NB];
+        tmp[j] = state[i][(j + n) % SIZE];
     }
-    memcpy(state[i], tmp, NB * sizeof(unsigned char));
+    memcpy(state[i], tmp, SIZE * sizeof(unsigned char));
 }
 
-void ShiftRows(unsigned char state[4][NB]) {
+void ShiftRows(unsigned char state[SIZE][SIZE])
+{
     ShiftRow(state, 1, 1);
     ShiftRow(state, 2, 2);
     ShiftRow(state, 3, 3);
+}
+
+void SubByets(unsigned char state[SIZE][SIZE])
+{
+    for (unsigned int i = 0; i < SIZE; i++)
+    {
+        for (unsigned int j = 0; j < SIZE; j++)
+        {
+            state[i][j] = sbox[state[i][j]/ HEX][state[i][j]% HEX];
+        }
+    }
+}
+
+void MixColumns(unsigned char state[SIZE][SIZE])
+{
+    unsigned char temp_state[SIZE][SIZE];
+
+    for (unsigned int i = 0; i < SIZE; ++i)
+    {
+        memset(temp_state[i], 0, 4);
+    }
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        for (unsigned int k = 0; k < 4; ++k)
+        {
+            for (unsigned int j = 0; j < 4; ++j)
+            {
+                if (CMDS[i][k] == 1)
+                    temp_state[i][j] ^= state[k][j];
+                
+            }
+        }
+    }
+
+    for (unsigned int i = 0; i < 4; ++i) {
+        memcpy(state[i], temp_state[i], 4);
+    }
+
+}
+
+void InvShiftRows(unsigned char state[SIZE][SIZE])
+{
+    ShiftRow(state, 1, 3);
+    ShiftRow(state, 2, 2);
+    ShiftRow(state, 3, 1);
+}
+
+void InvSubByets(unsigned char state[SIZE][SIZE])
+{
+    for (unsigned int i = 0; i < SIZE; i++)
+    {
+        for (unsigned int j = 0; j < SIZE; j++)
+        {
+            state[i][j] = inv_sbox[state[i][j] / HEX][state[i][j] % HEX];
+        }
+    }
 }
