@@ -1,26 +1,25 @@
 #include <iostream>
 #include <cmath>
 
-
+//declarations
 long long modInverse(long long a, long long m);
 long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q);
 
 
 int main() 
 {
-    long long x = modInverse(17, 3);
     unsigned long long p = 7919; // Replace with your prime p
     unsigned long long q = 5839; // Replace with your prime q
     long long N = p * q;
-    long long phi = (p - 1) * (q - 1);
+    long long totient = (p - 1) * (q - 1);
 
     long long e = 17; // Replace with your public exponent e
-    long long d = modInverse(e, phi); // Calculate private exponent d
+    long long d = modInverse(e, totient); // Calculate private exponent d
 
     long long plaintext = 42; // Replace with your plaintext
     std::cout << "Original plaintext: " << plaintext << std::endl;
 
-    // Encryption
+    //Encryption
     long long ciphertext = modExp(plaintext, e, N);
     std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
 
@@ -31,15 +30,28 @@ int main()
     return 0;
 }
 
-// Function to perform modular exponentiation (base^exp % mod)
-long long modExp(long long base, long long exp, long long mod) {
+/* 
+* Function to perform modular exponentiation(base^exp % mod)
+* Input : base, exponent and number to modulo
+* Output : result
+*/
+long long modExp(long long base, long long exp, long long mod) 
+{
+    //Setting up
     long long result = 1;
     base = base % mod;
-    while (exp > 0) {
-        if (exp % 2 == 1) {
+    //This function uses binary exponention
+    while (exp > 0) 
+    {
+        //We use the binary value of the number to then include the exponention
+        if (exp % 2 == 1) 
+        {
+            //Multiplying result
             result = (result * base) % mod;
         }
+        //base^2, base^4, base^8...
         base = (base * base) % mod;
+        //dividing exponent
         exp /= 2;
     }
     return result;
