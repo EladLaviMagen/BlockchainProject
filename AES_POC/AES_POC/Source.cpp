@@ -241,7 +241,8 @@ void GKey(unsigned char state[SIZE][SIZE]);
 void AddRoundKey(unsigned char state[SIZE][SIZE], unsigned char key[SIZE][SIZE]);
 void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i, unsigned int n);
 void ShiftRows(unsigned char state[SIZE][SIZE]);
-void SubByets(unsigned char state[SIZE][SIZE]);
+void SubBytes(unsigned char state[SIZE][SIZE]);
+void SubBytes(unsigned char state[SIZE]);
 void MixColumns(unsigned char state[SIZE][SIZE]);
 void InvShiftRows(unsigned char state[SIZE][SIZE]);
 void InvSubByets(unsigned char state[SIZE][SIZE]);
@@ -252,6 +253,24 @@ int main()
 
     return 0;
 }
+
+void keyExpansion(unsigned char key[SIZE][SIZE])
+{
+    unsigned char* expander = new unsigned char[4];
+    for (int i = 0; i < SIZE; i++)
+    {
+        expander[i] = key[i][3];
+    }
+    char temp = expander[0];
+    expander[0] = expander[1];
+    expander[1] = expander[2];
+    expander[2] = expander[3];
+    expander[3] = temp;
+    SubBytes(expander);
+   
+
+}
+
 
 void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i,unsigned int n)  // shift row i on n positions
 {
@@ -270,7 +289,15 @@ void ShiftRows(unsigned char state[SIZE][SIZE])
     ShiftRow(state, 3, 3);
 }
 
-void SubByets(unsigned char state[SIZE][SIZE])
+void SubBytes(unsigned char state[SIZE])
+{
+    for (unsigned int i = 0; i < SIZE; i++)
+    { 
+        state[i] = sbox[state[i] / HEX][state[i] % HEX];
+    }
+}
+
+void SubBytes(unsigned char state[SIZE][SIZE])
 {
     for (unsigned int i = 0; i < SIZE; i++)
     {
