@@ -243,14 +243,18 @@ void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i, unsigned int n);
 void ShiftRows(unsigned char state[SIZE][SIZE]);
 void SubBytes(unsigned char state[SIZE][SIZE]);
 void SubBytes(unsigned char state[SIZE]);
-void MixColumns(unsigned char state[SIZE][SIZE]);
 void InvShiftRows(unsigned char state[SIZE][SIZE]);
-void InvSubByets(unsigned char state[SIZE][SIZE]);
+void InvSubBytes(unsigned char state[SIZE][SIZE]);
+
+
 void InvMixColumns(unsigned char state[SIZE][SIZE]);
+void MixColumns(unsigned char state[SIZE][SIZE]);
+int getRcon(int round);
 
 int main()
 {
-
+    int x = getRcon(9);
+    std::cout << x;
     return 0;
 }
 
@@ -267,10 +271,33 @@ void keyExpansion(unsigned char key[SIZE][SIZE])
     expander[2] = expander[3];
     expander[3] = temp;
     SubBytes(expander);
-   
+    //Adding round constants
+    //expander[0] ^= 
+
+
 
 }
 
+/*
+* 
+*/
+int getRcon(int round)
+{
+    if (round < 1)
+    {
+        return -1;
+    }
+    if (round == 1)
+    {
+        return 1;
+    }
+    int prevRound = getRcon(round - 1) * 2;
+    if (prevRound > 0x80)
+    {
+        prevRound ^= 0x11B;
+    }
+    return prevRound;
+}
 
 void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i,unsigned int n)  // shift row i on n positions
 {
@@ -343,7 +370,7 @@ void InvShiftRows(unsigned char state[SIZE][SIZE])
     ShiftRow(state, 3, 1);
 }
 
-void InvSubByets(unsigned char state[SIZE][SIZE])
+void InvSubBytes(unsigned char state[SIZE][SIZE])
 {
     for (unsigned int i = 0; i < SIZE; i++)
     {
