@@ -245,20 +245,39 @@ void SubBytes(unsigned char state[SIZE][SIZE]);
 void SubBytes(unsigned char state[SIZE]);
 void InvShiftRows(unsigned char state[SIZE][SIZE]);
 void InvSubBytes(unsigned char state[SIZE][SIZE]);
-
-
 void InvMixColumns(unsigned char state[SIZE][SIZE]);
 void MixColumns(unsigned char state[SIZE][SIZE]);
 int getRcon(int round);
+void keyExpansion(unsigned char** key, int round);
 
 int main()
 {
-    int x = getRcon(9);
-    std::cout << x;
+    unsigned char** key= new unsigned char*[SIZE];
+    for (int i = 0; i < SIZE; i++)
+    {
+        key[i] = new unsigned char[SIZE];
+    }
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            key[i][j] = 0x00;
+        }
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        keyExpansion(key, i + 1);
+    }
+    
+    for (int i = 0; i < SIZE; i++)
+    {
+        delete[] key[i];
+    }
+    delete[] key;
     return 0;
 }
 
-void keyExpansion(unsigned char key[SIZE][SIZE])
+void keyExpansion(unsigned char** key, int round)
 {
     unsigned char* expander = new unsigned char[4];
     for (int i = 0; i < SIZE; i++)
@@ -272,10 +291,27 @@ void keyExpansion(unsigned char key[SIZE][SIZE])
     expander[3] = temp;
     SubBytes(expander);
     //Adding round constants
-    //expander[0] ^= 
-
-
-
+    expander[0] ^= getRcon(round);
+    for (int i = 0; i < SIZE; i++)
+    {
+        key[i][0] ^= expander[i];
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        key[0][i + 1] ^= key[0][i];
+        key[1][i + 1] ^= key[1][i];
+        key[2][i + 1] ^= key[2][i];
+        key[3][i + 1] ^= key[3][i];
+    }
+    delete[] expander;
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            std::cout << std::hex << (int)key[j][i];
+        }
+    }
+    std::cout << std::endl;
 }
 
 /*
