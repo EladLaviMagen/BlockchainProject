@@ -81,30 +81,172 @@ static const unsigned char INV_CMDS[4][4] = {
     {14, 11, 13, 9}, {9, 14, 11, 13}, {13, 9, 14, 11}, {11, 13, 9, 14} };
 
 
-void GKey(unsigned char state[SIZE][SIZE]);
-void AddRoundKey(unsigned char state[SIZE][SIZE], unsigned char key[SIZE][SIZE]);
-void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i, unsigned int n);
-void ShiftRows(unsigned char state[SIZE][SIZE]);
-void SubBytes(unsigned char state[SIZE][SIZE]);
-void SubBytes(unsigned char state[SIZE]);
-void InvShiftRows(unsigned char state[SIZE][SIZE]);
-void InvSubBytes(unsigned char state[SIZE][SIZE]);
-void InvMixColumns(unsigned char state[SIZE][SIZE]);
-void MixColumns(unsigned char state[SIZE][SIZE]);
+void GKey(unsigned char** state);
+void AddRoundKey(unsigned char** state, unsigned char** key);
+void ShiftRow(unsigned char** state, unsigned int i, unsigned int n);
+void ShiftRows(unsigned char** state);
+void SubBytes(unsigned char** state);
+void SubBytes(unsigned char* state);
+void InvShiftRows(unsigned char** state);
+void InvSubBytes(unsigned char** state);
+void InvMixColumns(unsigned char** state);
+void MixColumns(unsigned char** state);
+void encrypt(unsigned char** state, unsigned char** key);
 int getRcon(int round);
 void keyExpansion(unsigned char** key, int round);
 int aesMul(int a, int b);
-
+void decrypt(unsigned char** state, unsigned char** key);
 
 
 
 int main()
 {
-   
+    unsigned char** roundKeys1 = new unsigned char* [SIZE];
+    for (int i = 0; i < SIZE; ++i)
+    {
+        roundKeys1[i] = new unsigned char[SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            roundKeys1[i][j] = 0;
+        }
+    }
+    unsigned char** roundKeys2 = new unsigned char* [SIZE];
+    for (int i = 0; i < SIZE; ++i)
+    {
+        roundKeys2[i] = new unsigned char[SIZE];;
+        for (int j = 0; j < SIZE; ++j)
+        {
+            roundKeys2[i][j] = 0;
+        }
+    }
+    unsigned char** state = new unsigned char* [SIZE];
+    for (int i = 0; i < SIZE; ++i)
+    {
+        state[i] = new unsigned char[SIZE];;
+        for (int j = 0; j < SIZE; ++j)
+        {
+            state[i][j] = 'a';
+        }
+    }
+    encrypt(state, roundKeys1);
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            std::cout << std::hex << (int)state[i][j] << ' ';
+        }
+    }
+    std::cout << '\n';
+    decrypt(state, roundKeys2);
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            std::cout << std::hex << (int)state[i][j] << ' ';
+        }
+    }
+
+
+
    
 
 
     return 0;
+}
+
+void decrypt(unsigned char** state, unsigned char** key)
+{
+    int i = 1;
+    unsigned char*** roundKeys = new unsigned char** [10];
+    for (i = 0; i < 10; ++i)
+    {
+        roundKeys[i] = new unsigned char* [SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            roundKeys[i][j] = new unsigned char[SIZE];
+        }
+    }
+    for (i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            for (int k = 0; k < SIZE; k++)
+            {
+                roundKeys[i][j][k] = key[j][k];
+            }
+        }
+        keyExpansion(key, i + 1);
+    }
+    AddRoundKey(state, key);
+    for (i = 9; i > 0; i--)
+    {
+        InvShiftRows(state);
+        InvSubBytes(state);
+        AddRoundKey(state, roundKeys[i]);
+        InvMixColumns(state);
+    }
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(state, roundKeys[i]);
+    for (i = 0; i < 10; ++i)
+    {
+        
+        for (int j = 0; j < SIZE; ++j)
+        {
+            delete[] roundKeys[i][j];
+        }
+        delete[] roundKeys[i];
+    }
+    delete[] roundKeys;
+}
+
+void encrypt(unsigned char** state, unsigned char** key)
+{
+    int i = 1;
+    AddRoundKey(state, key);
+    unsigned char*** roundKeys = new unsigned char**[10];
+    for (i = 0; i < 10; ++i)
+    {
+        roundKeys[i] = new unsigned char*[SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            roundKeys[i][j] = new unsigned char[SIZE];
+        }
+    }
+
+    for (i = 0; i < 10; i++)
+    {
+        keyExpansion(key, i + 1);
+        for (int j = 0; j < SIZE; ++j)
+        {
+            for (int k = 0; k < SIZE; k++)
+            {
+                roundKeys[i][j][k] = key[j][k];
+            }
+        }
+
+    }
+
+    for (i = 0; i < 9; i++)
+    {
+        SubBytes(state);
+        ShiftRows(state);
+        MixColumns(state);
+        AddRoundKey(state, roundKeys[i]);
+    }
+    SubBytes(state);
+    ShiftRows(state);
+    AddRoundKey(state, roundKeys[i]);
+    for (i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            delete[] roundKeys[i][j];
+        }
+        delete[] roundKeys[i];
+    }
+    delete[] roundKeys;
+
 }
 
 void keyExpansion(unsigned char** key, int round)
@@ -166,7 +308,7 @@ int getRcon(int round)
     return prevRound;
 }
 
-void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i,unsigned int n)  // shift row i on n positions
+void ShiftRow(unsigned char** state, unsigned int i,unsigned int n)  // shift row i on n positions
 {
     unsigned char tmp[SIZE];
     for (unsigned int j = 0; j < SIZE; j++)
@@ -176,14 +318,14 @@ void ShiftRow(unsigned char state[SIZE][SIZE], unsigned int i,unsigned int n)  /
     memcpy(state[i], tmp, SIZE * sizeof(unsigned char));
 }
 
-void ShiftRows(unsigned char state[SIZE][SIZE])
+void ShiftRows(unsigned char** state)
 {
     ShiftRow(state, 1, 1);
     ShiftRow(state, 2, 2);
     ShiftRow(state, 3, 3);
 }
 
-void SubBytes(unsigned char state[SIZE])
+void SubBytes(unsigned char* state)
 {
     for (unsigned int i = 0; i < SIZE; i++)
     { 
@@ -191,7 +333,7 @@ void SubBytes(unsigned char state[SIZE])
     }
 }
 
-void SubBytes(unsigned char state[SIZE][SIZE])
+void SubBytes(unsigned char** state)
 {
     for (unsigned int i = 0; i < SIZE; i++)
     {
@@ -202,7 +344,7 @@ void SubBytes(unsigned char state[SIZE][SIZE])
     }
 }
 
-void MixColumns(unsigned char state[SIZE][SIZE])
+void MixColumns(unsigned char** state)
 {
     unsigned char temp_state[SIZE][SIZE];
     for (unsigned int i = 0; i < SIZE; ++i)
@@ -271,14 +413,14 @@ int aesMul(int a, int b)
 //
 //}
 
-void InvShiftRows(unsigned char state[SIZE][SIZE])
+void InvShiftRows(unsigned char** state)
 {
     ShiftRow(state, 1, 3);
     ShiftRow(state, 2, 2);
     ShiftRow(state, 3, 1);
 }
 
-void InvSubBytes(unsigned char state[SIZE][SIZE])
+void InvSubBytes(unsigned char** state)
 {
     for (unsigned int i = 0; i < SIZE; i++)
     {
@@ -289,7 +431,7 @@ void InvSubBytes(unsigned char state[SIZE][SIZE])
     }
 }
 
-void InvMixColumns(unsigned char state[SIZE][SIZE])
+void InvMixColumns(unsigned char** state)
 {
     unsigned char temp_state[SIZE][SIZE];
     for (unsigned int i = 0; i < SIZE; ++i)
@@ -332,7 +474,7 @@ void InvMixColumns(unsigned char state[SIZE][SIZE])
     }*/
 }
 
-void AddRoundKey(unsigned char state[SIZE][SIZE], unsigned char key[SIZE][SIZE])
+void AddRoundKey(unsigned char** state, unsigned char** key)
 {
     for (unsigned int i = 0; i < SIZE; i++)
     {
@@ -344,7 +486,7 @@ void AddRoundKey(unsigned char state[SIZE][SIZE], unsigned char key[SIZE][SIZE])
 }
 
 
-void GKey(unsigned char state[SIZE][SIZE])
+void GKey(unsigned char** state)
 {
     std::srand(static_cast<unsigned int>(std::time(0)));
     for (unsigned int i = 0; i < SIZE; i++)
