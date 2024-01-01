@@ -12,7 +12,7 @@ struct Header
 class Block
 {
 public:
-	Block(Header head, std::string miner, int prev);
+	Block(Header head, std::string miner, std::string prev);
 	static std::string append(Block block);
 	bool mine();
 	void operator()();
@@ -21,9 +21,10 @@ public:
 
 
 
+
 private:
 	std::string _data;
 	Header _header;
-	int _prevHash;
+	std::string _prevHash;
 };
 
