@@ -7,6 +7,5 @@
 
 int main()
 {
-    std::list<Block> list;
     return 0;
 }
