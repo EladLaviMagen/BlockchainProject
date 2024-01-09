@@ -36,7 +36,13 @@ private:
 	};
 
 	void pad();
-	uint64_t mod_fin_val(uint32_t state[8]);
+	void messageScheduleACommpression();
+	std::string mod_fin_val();
+	uint32_t rotr(uint32_t x, uint32_t n);
+	uint32_t ch_fuc(uint32_t e, uint32_t f, uint32_t g);
+	uint32_t maj_func(uint32_t a, uint32_t b, uint32_t c);
+	uint32_t s0(uint32_t x);
+	uint32_t s1(uint32_t x);
 };
 
 #endif
