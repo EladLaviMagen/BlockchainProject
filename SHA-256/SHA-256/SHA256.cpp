@@ -1,15 +1,13 @@
 #include "SHA256.h"
-#include <cstring>
-#include <sstream>
-#include <iomanip>
-#include <bitset>
-#include <vector>
 
 
 
-
-
-SHA256::SHA256() : m_blocklen(0), m_bitlen(0) {
+SHA256::SHA256() : m_blocklen(0), m_bitlen(0) 
+{
+	for (int i = 0; i < 64; i++)
+	{
+		m_data[i] = 0;
+	}
 	m_state[0] = 0x6a09e667;
 	m_state[1] = 0xbb67ae85;
 	m_state[2] = 0x3c6ef372;
@@ -20,7 +18,7 @@ SHA256::SHA256() : m_blocklen(0), m_bitlen(0) {
 	m_state[7] = 0x5be0cd19;
 }
 
-void SHA256::conv(std::string str)
+std::string SHA256::conv(std::string str)
 {
 	std::vector<uint8_t> data = stringToBits(str);
 	int i = 0;
@@ -29,9 +27,13 @@ void SHA256::conv(std::string str)
 		m_data[m_blocklen++] = data[i];
 		i++;
 	}
+	pad();
+	chunkLoop();
+	return concatenate();
+
 }
 
-std::vector<uint8_t> stringToBits(const std::string& input) {
+std::vector<uint8_t> SHA256::stringToBits(const std::string& input) {
 	std::vector<uint8_t> result;
 
 	for (char c : input) {
@@ -44,7 +46,7 @@ std::vector<uint8_t> stringToBits(const std::string& input) {
 void SHA256::pad() {
 	uint64_t i = m_blocklen;
 
-	m_data[i++] = 0x80;
+	m_data[i++] = 0x80; //10000000
 	while (i < 55) {
 		m_data[i++] = 0x00; // Pad with zeros
 	}
@@ -59,18 +61,45 @@ void SHA256::pad() {
 	m_data[56] = m_bitlen >> 56;
 }
 
-std::string SHA256::mod_fin_val()
+std::string SHA256::concatenate()
 {
-
-	std::string result = std::to_string(m_state[0]) + std::to_string(m_state[1]) + std::to_string(m_state[2]) + std::to_string(m_state[3]) + std::to_string(m_state[4]) + std::to_string(m_state[5]) + std::to_string(m_state[6]) + std::to_string(m_state[7]);
-	return result;	
+	std::string result = "";
+	std::stringstream s;
+	s << std::setfill('0') << std::hex;
+	for (uint8_t i = 0; i < 8; i++) {
+		s << std::setw(2) << m_state[i];
+	}
+	return s.str();
 }
-void SHA256::messageScheduleACommpression()
+void SHA256::chunkLoop()
 {
-	uint32_t maj, s_1, ch, s_0, temp1,temp2, w[64];
+	uint32_t maj = 0;
+	uint32_t s_1 = 0;
+	uint32_t ch = 0;
+	uint32_t s_0 = 0;
+	uint32_t temp1 = 0;
+	uint32_t temp2 = 0;
+	uint32_t w[64];
+	for (int i = 0; i < 64; i++)
+	{
+		w[i] = 0;
+	}
 	uint32_t state[8];
-	///step 5 message schedule
-
+	for (int i = 0; i < 8; i++)
+	{
+		state[i] = 0;
+	}
+	///Step 5 message schedule
+	int j = 0;
+	for (int i = 0; i < 16; i++)
+	{
+		w[i] = (m_data[j] << 24) + (m_data[j + 1] << 16) + (m_data[j + 2] << 8) + (m_data[j + 3]);
+		j += 4;
+	}
+	for (int i = 16; i < 64; i++)
+	{
+		w[i] = 0;
+	}
 
 	for (int i = 16; i < 64; i++)
 	{
@@ -84,23 +113,24 @@ void SHA256::messageScheduleACommpression()
 	}
 	for (int i = 0; i < 64; i++)
 	{
-		s_1 = SHA256::rotr(state[0], 6) ^ SHA256::rotr(state[0], 11) ^ SHA256::rotr(state[0], 25);
+		s_1 = SHA256::rotr(state[4], 6) ^ SHA256::rotr(state[4], 11) ^ SHA256::rotr(state[4], 25);
 		ch = ch_fuc(state[4], state[5], state[6]);
-		temp1 = state[7] + s_0 + ch + K[i] + w[i];
+		temp1 = (state[7] + s_1 + ch + K[i] + w[i]) % 0x100000000;
 		s_0 = SHA256::rotr(state[0], 2) ^ SHA256::rotr(state[0], 13) ^ SHA256::rotr(state[0], 22);
 		maj = SHA256::maj_func(state[0], state[1], state[2]);
-		temp2 = s_0 + maj;
+		temp2 = (s_0 + maj) % 0x100000000;
 		state[7] = state[6];
 		state[6] = state[5];
 		state[5] = state[4];
-		state[4] = state[3] + temp1;
+		state[4] = (state[3] + temp1) % 0x100000000;
 		state[3] = state[2];
 		state[2] = state[1];
 		state[1] = state[0];
-		state[0] = temp1 + temp2;	
+		state[0] = (temp1 + temp2) % 0x100000000;
 	}
+	//Step 7
 	for (int i = 0; i < 8; i++) {
-		m_state[i] += state[i];
+		m_state[i] = (m_state[i] + state[i]) % 0x100000000;
 	}
 
 
@@ -115,7 +145,7 @@ uint32_t SHA256::ch_fuc(uint32_t e, uint32_t f, uint32_t g) {
 }
 
 uint32_t SHA256::maj_func(uint32_t a, uint32_t b, uint32_t c) {
-	return ((a & b) & (b | c) | (a & c));
+	return ((a & b) ^ (b & c) ^ (a & c));
 }
 
 uint32_t SHA256::s0(uint32_t x) {

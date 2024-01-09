@@ -3,12 +3,17 @@
 
 #include <string>
 #include <array>
+#include <cstring>
+#include <sstream>
+#include <iomanip>
+#include <bitset>
+#include <vector>
 
 class SHA256 {
 
 public:
 	SHA256();
-	void conv(std::string str);
+	std::string conv(std::string str);
 
 private:
 	uint8_t  m_data[64];
@@ -36,8 +41,9 @@ private:
 	};
 
 	void pad();
-	void messageScheduleACommpression();
-	std::string mod_fin_val();
+	void chunkLoop();
+	std::vector<uint8_t> stringToBits(const std::string& input);
+	std::string concatenate();
 	uint32_t rotr(uint32_t x, uint32_t n);
 	uint32_t ch_fuc(uint32_t e, uint32_t f, uint32_t g);
 	uint32_t maj_func(uint32_t a, uint32_t b, uint32_t c);
