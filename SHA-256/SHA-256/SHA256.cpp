@@ -1,6 +1,8 @@
 #include "SHA256.h"
-//Setting variable
+//Setting static variable
 std::vector<uint32_t> SHA256::m_state;
+
+//defines 
 #define BITS_512 64
 #define BYTE 0x100
 #define WORD 0x100000000
