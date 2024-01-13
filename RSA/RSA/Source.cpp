@@ -4,28 +4,31 @@
 //declarations
 long long modInverse(long long a, long long m);
 long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q);
-
+long long modExp(long long base, long long exp, long long mod);
 
 int main() 
 {
-    unsigned long long p = 7919; // Replace with your prime p
-    unsigned long long q = 5839; // Replace with your prime q
+    unsigned long long p = 97579; // Replace with your prime p
+    unsigned long long q = 97583; // Replace with your prime q
     long long N = p * q;
     long long totient = (p - 1) * (q - 1);
 
-    long long e = 17; // Replace with your public exponent e
+    long long e = 999983; // Replace with your public exponent e
     long long d = modInverse(e, totient); // Calculate private exponent d
+    for (int i = 0; i < 300; i++)
+    {
+        long long plaintext = std::rand() % 122 + 61;  // Replace with your plaintext
+        std::cout << "Original plaintext: " << plaintext << std::endl;
 
-    long long plaintext = 42; // Replace with your plaintext
-    std::cout << "Original plaintext: " << plaintext << std::endl;
+        //Encryption
+        long long ciphertext = rsaDecrypt(plaintext, e, p, q);
+        std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
 
-    //Encryption
-    long long ciphertext = modExp(plaintext, e, N);
-    std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
-
-    // Decryption using CRT
-    long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
-    std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+        // Decryption using CRT
+        long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
+        std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+    }
+    
 
     return 0;
 }
