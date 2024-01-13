@@ -15,7 +15,9 @@ public:
 	static std::string conv(std::string str);
 	
 private:
+	//The hash value
 	static std::vector<uint32_t> m_state;
+	//Matrix full of constants for hashing
 	static constexpr std::array<uint32_t, 64> k = {
 		0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,
 		0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
@@ -34,7 +36,7 @@ private:
 		0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,
 		0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 	};
-	static void start();
+	//Functions
 	static std::vector<uint8_t> pad(int m_blocklen, std::vector<uint8_t> m_data);
 	static void chunkLoop(std::vector<uint8_t> m_data);
 	static std::vector<uint8_t> stringToBits(const std::string& input);
