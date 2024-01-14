@@ -61,7 +61,8 @@ long long modExp(long long base, long long exp, long long mod)
 }
 
 // Function to calculate modular multiplicative inverse using Extended Euclidean Algorithm
-long long modInverse(long long a, long long m) {
+long long modInverse(long long a, long long m) 
+{
     long long m0 = m;
     long long y = 0, x = 1;
     if (m == 1) {
@@ -84,7 +85,8 @@ long long modInverse(long long a, long long m) {
 
 
 // RSA decryption using CRT
-long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q) {
+long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q) 
+{
     long long dp = d % (p - 1);
     long long dq = d % (q - 1);
 

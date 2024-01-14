@@ -91,72 +91,100 @@ void InvShiftRows(unsigned char** state);
 void InvSubBytes(unsigned char** state);
 void InvMixColumns(unsigned char** state);
 void MixColumns(unsigned char** state);
-void encrypt(unsigned char** state, unsigned char** key);
 int getRcon(int round);
 void keyExpansion(unsigned char** key, int round);
 int aesMul(int a, int b);
-void decrypt(unsigned char** state, unsigned char** key);
+void encrypt(unsigned char** state, unsigned char** pkey);
+void decrypt(unsigned char** state, unsigned char** pkey);
 
 
+unsigned char*** matrixAndPadString(std::string input)
+{
+    int i = 0;
+    int size = input.length() / 16 + 1;
+    unsigned char*** matrixes = new unsigned char**[size];
+    for (i = 0; i < size; ++i)
+    {
+        matrixes[i] = new unsigned char* [SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            matrixes[i][j] = new unsigned char[SIZE];
+            for (int k = 0; k  < size; k++)
+            {
+                matrixes[i][j][k] = 0;
+                if (i * 16 + j * SIZE + k < input.length())
+                {
+                    matrixes[i][j][k] = input[i * 16 + j * SIZE + k];
+                }
+               
+            }
+        }
+    }
+    return matrixes;
+}
 
 int main()
 {
-    unsigned char** roundKeys1 = new unsigned char* [SIZE];
-    for (int i = 0; i < SIZE; ++i)
-    {
-        roundKeys1[i] = new unsigned char[SIZE];
-        for (int j = 0; j < SIZE; ++j)
-        {
-            roundKeys1[i][j] = 0;
-        }
-    }
-    unsigned char** roundKeys2 = new unsigned char* [SIZE];
-    for (int i = 0; i < SIZE; ++i)
-    {
-        roundKeys2[i] = new unsigned char[SIZE];;
-        for (int j = 0; j < SIZE; ++j)
-        {
-            roundKeys2[i][j] = 0;
-        }
-    }
     unsigned char** state = new unsigned char* [SIZE];
+    unsigned char** roundKey = new unsigned char* [SIZE];
     for (int i = 0; i < SIZE; ++i)
     {
+        roundKey[i] = new unsigned char[SIZE];
         state[i] = new unsigned char[SIZE];;
+
+    }
+
+    for (int i = 0; i < SIZE; ++i)
+    {
         for (int j = 0; j < SIZE; ++j)
         {
-            state[i][j] = 'a';
+            std::cin >> roundKey[j][i];
+            state[j][i] = 'a';
         }
     }
-    encrypt(state, roundKeys1);
+    encrypt(state, roundKey);
     for (int i = 0; i < SIZE; ++i)
     {
         for (int j = 0; j < SIZE; ++j)
         {
-            std::cout << std::hex << (int)state[i][j] << ' ';
+            std::cout << std::hex << (int)state[j][i] << ' ';
         }
     }
     std::cout << '\n';
-    decrypt(state, roundKeys2);
+    decrypt(state, roundKey);
     for (int i = 0; i < SIZE; ++i)
     {
         for (int j = 0; j < SIZE; ++j)
         {
-            std::cout << std::hex << (int)state[i][j] << ' ';
+            std::cout << state[j][i] << ' ';
         }
     }
+    for (int i = 0; i < SIZE; ++i)
+    {
 
-
-
-   
-
+        delete[] state[i];
+        delete[] roundKey[i];
+        
+    }
+    delete[] state;
+    delete[] roundKey;
 
     return 0;
+
 }
 
-void decrypt(unsigned char** state, unsigned char** key)
+void decrypt(unsigned char** state, unsigned char** pkey)
 {
     int i = 1;
+    unsigned char** key = new unsigned char* [SIZE];
+    for (int i = 0; i < SIZE; ++i)
+    {
+        key[i] = new unsigned char[SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            key[i][j] = pkey[i][j];
+        }
+    }
     unsigned char*** roundKeys = new unsigned char** [10];
     for (i = 0; i < 10; ++i)
     {
@@ -164,12 +192,6 @@ void decrypt(unsigned char** state, unsigned char** key)
         for (int j = 0; j < SIZE; ++j)
         {
             roundKeys[i][j] = new unsigned char[SIZE];
-        }
-    }
-    for (i = 0; i < 10; i++)
-    {
-        for (int j = 0; j < SIZE; ++j)
-        {
             for (int k = 0; k < SIZE; k++)
             {
                 roundKeys[i][j][k] = key[j][k];
@@ -188,9 +210,13 @@ void decrypt(unsigned char** state, unsigned char** key)
     InvShiftRows(state);
     InvSubBytes(state);
     AddRoundKey(state, roundKeys[i]);
+    for (int i = 0; i < SIZE; i++)
+    {
+        delete[] key[i];
+    }
+    delete[] key;
     for (i = 0; i < 10; ++i)
     {
-        
         for (int j = 0; j < SIZE; ++j)
         {
             delete[] roundKeys[i][j];
@@ -200,10 +226,19 @@ void decrypt(unsigned char** state, unsigned char** key)
     delete[] roundKeys;
 }
 
-void encrypt(unsigned char** state, unsigned char** key)
+void encrypt(unsigned char** state, unsigned char** pkey)
 {
     int i = 1;
-    AddRoundKey(state, key);
+    AddRoundKey(state, pkey);
+    unsigned char** key = new unsigned char* [SIZE];
+    for (int i = 0; i < SIZE; ++i)
+    {
+        key[i] = new unsigned char[SIZE];
+        for (int j = 0; j < SIZE; ++j)
+        {
+            key[i][j] = pkey[i][j];
+        }
+    }
     unsigned char*** roundKeys = new unsigned char**[10];
     for (i = 0; i < 10; ++i)
     {
@@ -237,6 +272,12 @@ void encrypt(unsigned char** state, unsigned char** key)
     SubBytes(state);
     ShiftRows(state);
     AddRoundKey(state, roundKeys[i]);
+
+    for (int i = 0; i < SIZE; i++)
+    {
+        delete[] key[i];
+    }
+    delete[] key;
     for (i = 0; i < SIZE; ++i)
     {
         for (int j = 0; j < SIZE; ++j)
@@ -251,6 +292,7 @@ void encrypt(unsigned char** state, unsigned char** key)
 
 void keyExpansion(unsigned char** key, int round)
 {
+    
     unsigned char* expander = new unsigned char[4];
     for (int i = 0; i < SIZE; i++)
     {

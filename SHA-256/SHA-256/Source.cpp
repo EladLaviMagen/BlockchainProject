@@ -4,7 +4,10 @@
 #define CHECK_VAL "0000b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
 int main()
 {
-	int i = 0;
+	std::string str = "";
+	std::cin >> str;
+	std::cout << SHA256::conv(str);
+	/*int i = 0;
 	while(true)
 	{
 		std::string input = "sdsjkdsahdjvbwqjkdbsdlkjafhesjk fhwj fhewuirhyjhuiryewgeduiwoqgrf" + std::to_string(i);
@@ -23,6 +26,6 @@ int main()
 			break;
 		}
 		i++;
-	}
-	
+	}*/
+	return 0;
 }
