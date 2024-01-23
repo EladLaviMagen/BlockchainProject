@@ -71,27 +71,63 @@ const unsigned char AES::CMDS[4][4] = {
 const unsigned char AES::INV_CMDS[4][4] = {
     {14, 11, 13, 9}, {9, 14, 11, 13}, {13, 9, 14, 11}, {11, 13, 9, 14} };
 
-void AES::decrypt(unsigned char** state, unsigned char** key)
+void AES::copyKey(unsigned char** src, unsigned char** dst)
 {
-    int i = 1;
-    unsigned char*** roundKeys = new unsigned char**[10];
-    for (i = 0; i < 10; ++i)
+    for (int i = 0; i < SIZE; ++i)
     {
-        roundKeys[i] = new unsigned char* [SIZE];
         for (int j = 0; j < SIZE; ++j)
         {
-            roundKeys[i][j] = new unsigned char[SIZE];
+            dst[i][j] = src[i][j];
         }
     }
-    for (i = 0; i < 10; i++)
+}
+unsigned char*** AES::allocateMatrixes(int size)
+{
+    unsigned char*** res = new unsigned char**[size];
+    for (int i = 0; i < size; ++i)
     {
-        for (int j = 0; j < SIZE; ++j)
-        {
-            for (int k = 0; k < SIZE; k++)
-            {
-                roundKeys[i][j][k] = key[j][k];
-            }
-        }
+        res[i] = allocateMatrix(SIZE);
+    }
+    return res;
+}
+
+unsigned char** AES::allocateMatrix(int size)
+{
+    unsigned char** res = new unsigned char*[size];
+    for (int j = 0; j < size; ++j)
+    {
+        res[j] = new unsigned char[size];
+    }
+    return res;
+}
+
+void AES::deallocateMatrixes(unsigned char*** msg, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        deallocateMatrix(msg[i], size);
+    }
+    delete[] msg;
+}
+
+void AES::deallocateMatrix(unsigned char** msg, int size)
+{
+    for (int j = 0; j < size; ++j)
+    {
+        delete[] msg[j];
+    }
+    delete[] msg;
+}
+
+void AES::decryptBlock(unsigned char** state, unsigned char** pkey)
+{
+    int i = 1;
+    unsigned char** key = allocateMatrix(SIZE);
+    copyKey(pkey, key);
+    unsigned char*** roundKeys = allocateMatrixes(10);
+    for (i = 0; i < 10; ++i)
+    {
+        copyKey(key, roundKeys[i]);
         keyExpansion(key, i + 1);
     }
     AddRoundKey(state, key);
@@ -105,43 +141,21 @@ void AES::decrypt(unsigned char** state, unsigned char** key)
     InvShiftRows(state);
     InvSubBytes(state);
     AddRoundKey(state, roundKeys[i]);
-    for (i = 0; i < 10; ++i)
-    {
-
-        for (int j = 0; j < SIZE; ++j)
-        {
-            delete[] roundKeys[i][j];
-        }
-        delete[] roundKeys[i];
-    }
-    delete[] roundKeys;
+    deallocateMatrix(key, SIZE);
+    deallocateMatrixes(roundKeys, 10);
 }
 
-void AES::encrypt(unsigned char** state, unsigned char** key)
+void AES::encryptBlock(unsigned char** state, unsigned char** pkey)
 {
     int i = 1;
-    AddRoundKey(state, key);
-    unsigned char*** roundKeys = new unsigned char** [10];
-    for (i = 0; i < 10; ++i)
-    {
-        roundKeys[i] = new unsigned char* [SIZE];
-        for (int j = 0; j < SIZE; ++j)
-        {
-            roundKeys[i][j] = new unsigned char[SIZE];
-        }
-    }
-
+    AddRoundKey(state, pkey);
+    unsigned char** key = allocateMatrix(SIZE);
+    copyKey(pkey, key);
+    unsigned char*** roundKeys = allocateMatrixes(10);
     for (i = 0; i < 10; i++)
     {
         keyExpansion(key, i + 1);
-        for (int j = 0; j < SIZE; ++j)
-        {
-            for (int k = 0; k < SIZE; k++)
-            {
-                roundKeys[i][j][k] = key[j][k];
-            }
-        }
-
+        copyKey(key, roundKeys[i]);
     }
 
     for (i = 0; i < 9; i++)
@@ -154,16 +168,8 @@ void AES::encrypt(unsigned char** state, unsigned char** key)
     SubBytes(state);
     ShiftRows(state);
     AddRoundKey(state, roundKeys[i]);
-    for (i = 0; i < SIZE; ++i)
-    {
-        for (int j = 0; j < SIZE; ++j)
-        {
-            delete[] roundKeys[i][j];
-        }
-        delete[] roundKeys[i];
-    }
-    delete[] roundKeys;
-
+    deallocateMatrix(key, SIZE);
+    deallocateMatrixes(roundKeys, 10);
 }
 
 void AES::keyExpansion(unsigned char** key, int round)

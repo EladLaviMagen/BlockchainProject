@@ -97,11 +97,20 @@ int aesMul(int a, int b);
 void encrypt(unsigned char** state, unsigned char** pkey);
 void decrypt(unsigned char** state, unsigned char** pkey);
 
+int calcBlocks(std::string input)
+{
+    int size = input.length() / 16;
+    if (input.length() % 16 != 0)
+    {
+        size++;
+    }
+    return size;
+}
 
 unsigned char*** matrixAndPadString(std::string input)
 {
     int i = 0;
-    int size = input.length() / 16 + 1;
+    int size = calcBlocks(input);
     unsigned char*** matrixes = new unsigned char**[size];
     for (i = 0; i < size; ++i)
     {
@@ -109,7 +118,7 @@ unsigned char*** matrixAndPadString(std::string input)
         for (int j = 0; j < SIZE; ++j)
         {
             matrixes[i][j] = new unsigned char[SIZE];
-            for (int k = 0; k  < size; k++)
+            for (int k = 0; k  < SIZE; k++)
             {
                 matrixes[i][j][k] = 0;
                 if (i * 16 + j * SIZE + k < input.length())
@@ -125,49 +134,27 @@ unsigned char*** matrixAndPadString(std::string input)
 
 int main()
 {
-    unsigned char** state = new unsigned char* [SIZE];
-    unsigned char** roundKey = new unsigned char* [SIZE];
-    for (int i = 0; i < SIZE; ++i)
+    std::string msg = "EladLaviMagenGOAT ZEHAHAHAHAHAW";
+    unsigned char*** boss = matrixAndPadString(msg);
+    int size = calcBlocks(msg);
+    for (int i = 0; i < size; i++)
     {
-        roundKey[i] = new unsigned char[SIZE];
-        state[i] = new unsigned char[SIZE];;
-
-    }
-
-    for (int i = 0; i < SIZE; ++i)
-    {
-        for (int j = 0; j < SIZE; ++j)
+        for (int j = 0; j < 4; j++)
         {
-            std::cin >> roundKey[j][i];
-            state[j][i] = 'a';
+            for (int k = 0; k < 4; k++)
+            {
+                if(boss[i][j][k] == 0)
+                {
+                    std::cout << '0';
+                }
+                else
+                {
+                    std::cout << boss[i][j][k];
+                }
+               
+            }
         }
     }
-    encrypt(state, roundKey);
-    for (int i = 0; i < SIZE; ++i)
-    {
-        for (int j = 0; j < SIZE; ++j)
-        {
-            std::cout << std::hex << (int)state[j][i] << ' ';
-        }
-    }
-    std::cout << '\n';
-    decrypt(state, roundKey);
-    for (int i = 0; i < SIZE; ++i)
-    {
-        for (int j = 0; j < SIZE; ++j)
-        {
-            std::cout << state[j][i] << ' ';
-        }
-    }
-    for (int i = 0; i < SIZE; ++i)
-    {
-
-        delete[] state[i];
-        delete[] roundKey[i];
-        
-    }
-    delete[] state;
-    delete[] roundKey;
 
     return 0;
 

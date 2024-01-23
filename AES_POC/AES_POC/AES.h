@@ -10,8 +10,8 @@ class AES
 public:
 	AES();
 	~AES();
-	void encrypt(unsigned char** state, unsigned char** key);
-	void decrypt(unsigned char** state, unsigned char** key);
+	void encryptBlock(unsigned char** state, unsigned char** pkey);
+	void decryptBlock(unsigned char** state, unsigned char** pkey);
 	void GKey(unsigned char** state);
 private:
     static const unsigned char sbox[HEX][HEX];
@@ -21,6 +21,11 @@ private:
 	static const unsigned char CMDS[4][4];
 
 	static const unsigned char INV_CMDS[4][4];
+	unsigned char*** allocateMatrixes(int size);
+	unsigned char** allocateMatrix(int size);
+	void copyKey(unsigned char** src, unsigned char** dst);
+	void deallocateMatrixes(unsigned char*** msg, int size);
+	void deallocateMatrix(unsigned char** msg, int size);
 	void AddRoundKey(unsigned char** state, unsigned char** key);
 	void ShiftRow(unsigned char** state, unsigned int i, unsigned int n);
 	void ShiftRows(unsigned char** state);
