@@ -8,19 +8,25 @@
 class AES
 {
 public:
-	AES();
+	AES(std::string key);
 	~AES();
+	std::string encrypt(std::string input);
+	std::string decrypt(std::string input);
+	void setKey(std::string newKey);
+	void GKey();
+private:
+
+    static const unsigned char sbox[HEX][HEX];
+	static const unsigned char inv_sbox[HEX][HEX];
+	static const unsigned char CMDS[4][4];
+	static const unsigned char INV_CMDS[4][4];
+	unsigned char** _key;
+
+	std::string matrixesToString(unsigned char*** input, int size);
 	void encryptBlock(unsigned char** state, unsigned char** pkey);
 	void decryptBlock(unsigned char** state, unsigned char** pkey);
-	void GKey(unsigned char** state);
-private:
-    static const unsigned char sbox[HEX][HEX];
-
-	static const unsigned char inv_sbox[HEX][HEX];
-
-	static const unsigned char CMDS[4][4];
-
-	static const unsigned char INV_CMDS[4][4];
+	int calcBlocks(std::string input);
+	unsigned char*** matrixAndPadString(std::string input);
 	unsigned char*** allocateMatrixes(int size);
 	unsigned char** allocateMatrix(int size);
 	void copyKey(unsigned char** src, unsigned char** dst);

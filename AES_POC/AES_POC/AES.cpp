@@ -71,6 +71,100 @@ const unsigned char AES::CMDS[4][4] = {
 const unsigned char AES::INV_CMDS[4][4] = {
     {14, 11, 13, 9}, {9, 14, 11, 13}, {13, 9, 14, 11}, {11, 13, 9, 14} };
 
+AES::AES(std::string key)
+{
+    int size = calcBlocks(key);
+    unsigned char*** prepKey = matrixAndPadString(key);
+    _key = allocateMatrix(SIZE);
+    copyKey(prepKey[0], _key);
+    deallocateMatrixes(prepKey, size);
+}
+
+void AES::setKey(std::string newKey)
+{
+    int size = calcBlocks(newKey);
+    unsigned char*** prepKey = matrixAndPadString(newKey);
+    copyKey(prepKey[0], _key);
+    deallocateMatrixes(prepKey, size);
+}
+
+AES::~AES()
+{
+    deallocateMatrix(_key, SIZE);
+}
+
+std::string AES::encrypt(std::string input)
+{
+    unsigned char*** states = matrixAndPadString(input);
+    int size = calcBlocks(input);
+    for (int i = 0; i < size; i++)
+    {
+        encryptBlock(states[i], _key);
+    }
+    std::string result = matrixesToString(states, size);
+    return result;
+}
+
+std::string AES::decrypt(std::string input)
+{
+    unsigned char*** states = matrixAndPadString(input);
+    int size = calcBlocks(input);
+    for (int i = 0; i < size; i++)
+    {
+        decryptBlock(states[i], _key);
+    }
+    std::string result = matrixesToString(states, size);
+    return result;
+}
+int AES::calcBlocks(std::string input)
+{
+    int size = input.length() / 16;
+    if (input.length() % 16 != 0)
+    {
+        size++;
+    }
+    return size;
+}
+
+std::string AES::matrixesToString(unsigned char*** input, int size)
+{
+    std::string res = "";
+    for (int i = 0; i < size; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            for (int k = 0; k < SIZE; k++)
+            {
+                res += input[i][j][k];
+            }
+        }
+    }
+    return res;
+} 
+
+unsigned char*** AES::matrixAndPadString(std::string input)
+{
+    int i = 0;
+    int size = calcBlocks(input);
+    unsigned char*** matrixes = allocateMatrixes(size);
+    for (i = 0; i < size; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            for (int k = 0; k < SIZE; k++)
+            {
+                matrixes[i][j][k] = 0;
+                if (i * 16 + j * SIZE + k < input.length())
+                {
+                    matrixes[i][j][k] = input[i * 16 + j * SIZE + k];
+                }
+
+            }
+        }
+    }
+    return matrixes;
+}
+
 void AES::copyKey(unsigned char** src, unsigned char** dst)
 {
     for (int i = 0; i < SIZE; ++i)
@@ -81,6 +175,7 @@ void AES::copyKey(unsigned char** src, unsigned char** dst)
         }
     }
 }
+
 unsigned char*** AES::allocateMatrixes(int size)
 {
     unsigned char*** res = new unsigned char**[size];
@@ -105,7 +200,7 @@ void AES::deallocateMatrixes(unsigned char*** msg, int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        deallocateMatrix(msg[i], size);
+        deallocateMatrix(msg[i], SIZE);
     }
     delete[] msg;
 }
@@ -382,14 +477,14 @@ void AES::AddRoundKey(unsigned char** state, unsigned char** key)
 }
 
 
-void AES::GKey(unsigned char** state)
+void AES::GKey()
 {
     std::srand(static_cast<unsigned int>(std::time(0)));
     for (unsigned int i = 0; i < SIZE; i++)
     {
         for (unsigned int j = 0; j < SIZE; j++)
         {
-            state[i][j] = std::rand() % 255 + 1;
+            _key[i][j] = std::rand() % 255 + 1;
         }
     }
 }
