@@ -4,13 +4,17 @@
 
 int main()
 {
-    AES* cipher = new AES("1234123412341234");
+    AES* cipher = new AES();
     std::string msg = "";
     std::getline(std::cin, msg);
     while (msg != "exit")
     {
         msg = cipher->encrypt(msg);
-        std::cout << msg << std::endl;
+        for (int i = 0; i < msg.length(); i++)
+        {
+            std::cout << std::hex << (int)((char)msg[i]) << " ";
+        }
+        std::cout << std::endl;
         msg = cipher->decrypt(msg);
         std::cout << msg << std::endl;
         msg = "";

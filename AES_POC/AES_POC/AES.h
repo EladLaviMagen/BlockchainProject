@@ -9,10 +9,12 @@ class AES
 {
 public:
 	AES(std::string key);
+	AES();
 	~AES();
 	std::string encrypt(std::string input);
 	std::string decrypt(std::string input);
 	void setKey(std::string newKey);
+	std::string getKey();
 	void GKey();
 private:
 
