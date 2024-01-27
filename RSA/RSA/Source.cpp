@@ -29,28 +29,25 @@ int main()
     //    long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
     //    std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
     //}
-    std::vector<big> n;
-    for (size_t i = 0; i < 5; i++)
+    RSA cipher;
+    std::vector<big> word;
+    std::string data = "";
+    std::getline(std::cin, data);
+    for (int i = 0; i < data.size(); i++)
     {
-        n.push_back('a');
+        word.push_back(data[i]);
     }
-    RSA* temp = new RSA;
-    int i = 2;
-    while (!temp->checkPublic(i))
+
+    big e = cipher.generatePublic();
+    word = cipher.rsaMain(word, e);
+    word = cipher.rsaMain(word, cipher.modInverse(e));
+    for (int i = 0; i < word.size(); i++)
     {
-        i++;
+        std::cout << (char)word[i];
     }
-    n = temp->rsaMain(n, i);
-    for (size_t j = 0; j < 5; j++)
-    {
-        std::cout << n[j] << std::endl;
-    }
-    n = temp->rsaMain(n, temp->modInverse(i));
-    for (size_t j = 0; j < 5; j++)
-    {
-        std::cout << n[j] << std::endl;
-    }
-    delete temp;
+
+    
+
     return 0;
 }
 

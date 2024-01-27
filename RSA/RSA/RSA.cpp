@@ -9,7 +9,16 @@ RSA::RSA()
         _q = generateRandomPrime();
     }
 }
-
+big RSA::generatePublic()
+{
+    srand(time(0)); // Seed for random number generation
+    big randomNum = 0;
+    do 
+    {
+        randomNum = rand() % 11111223211;
+    } while (!checkPublic(randomNum));
+    return randomNum;
+}
 /*
 * Function to perform modular exponentiation(base^exp % mod)
 * Input : base, exponent and number to modulo

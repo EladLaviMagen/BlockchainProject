@@ -19,6 +19,7 @@ public:
 	bool setQ(big q);
 	bool setP(big p);
 	bool checkPublic(big e);
+	big generatePublic();
 
 private:
 	
