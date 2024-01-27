@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include "RSA.h"
 
 //declarations
 long long modInverse(long long a, long long m);
@@ -8,28 +9,48 @@ long long modExp(long long base, long long exp, long long mod);
 
 int main() 
 {
-    unsigned long long p = 97579; // Replace with your prime p
-    unsigned long long q = 97583; // Replace with your prime q
-    long long N = p * q;
-    long long totient = (p - 1) * (q - 1);
+    //unsigned long long p = 97579; // Replace with your prime p
+    //unsigned long long q = 97583; // Replace with your prime q
+    //long long N = p * q;
+    //long long totient = (p - 1) * (q - 1);
 
-    long long e = 999983; // Replace with your public exponent e
-    long long d = modInverse(e, totient); // Calculate private exponent d
-    for (int i = 0; i < 300; i++)
+    //long long e = 999983; // Replace with your public exponent e
+    //long long d = modInverse(e, totient); // Calculate private exponent d
+    //for (int i = 0; i < 300; i++)
+    //{
+    //    long long plaintext = std::rand() % 122 + 61;  // Replace with your plaintext
+    //    std::cout << "Original plaintext: " << plaintext << std::endl;
+
+    //    //Encryption
+    //    long long ciphertext = rsaDecrypt(plaintext, e, p, q);
+    //    std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
+
+    //    // Decryption using CRT
+    //    long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
+    //    std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+    //}
+    std::vector<big> n;
+    for (size_t i = 0; i < 5; i++)
     {
-        long long plaintext = std::rand() % 122 + 61;  // Replace with your plaintext
-        std::cout << "Original plaintext: " << plaintext << std::endl;
-
-        //Encryption
-        long long ciphertext = rsaDecrypt(plaintext, e, p, q);
-        std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
-
-        // Decryption using CRT
-        long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
-        std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+        n.push_back('a');
     }
-    
-
+    RSA* temp = new RSA;
+    int i = 2;
+    while (!temp->checkPublic(i))
+    {
+        i++;
+    }
+    n = temp->rsaMain(n, i);
+    for (size_t j = 0; j < 5; j++)
+    {
+        std::cout << n[j] << std::endl;
+    }
+    n = temp->rsaMain(n, temp->modInverse(i));
+    for (size_t j = 0; j < 5; j++)
+    {
+        std::cout << n[j] << std::endl;
+    }
+    delete temp;
     return 0;
 }
 
