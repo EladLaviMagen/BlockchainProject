@@ -2,6 +2,23 @@
 
 Blockchain::Blockchain()
 {
+
+}
+
+bool Blockchain::operator==(Blockchain& other)
+{
+	if (_block == other._block && _next == other._next)
+	{
+		return true;
+	}
+	do
+	{
+		if (!(*_block == *other._block))
+		{
+			return false;
+		}
+	} while (_next != nullptr);
+	return true;
 }
 
 Blockchain::Blockchain(std::string chainInfo)
