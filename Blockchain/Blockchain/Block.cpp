@@ -40,12 +40,12 @@ bool Block::operator==(Block& other)
 
 std::string Block::append(Block block)
 {
-	std::string head = "" + block._header.nonce + block._header.targetHash + block._header.timestamp + std::to_string(block._header.version) + block._prevHash;
+	//std::string head = "" + block._header.nonce + block._header.targetHash + block._header.timestamp + std::to_string(block._header.version) + block._prevHash;
 	//For now, placeholder for what is to come
 	/*
 	* Insert function which appends transactions into the string
 	*/
-	return head + block._data;
+	return "";//head + block._data;
 }
 
 

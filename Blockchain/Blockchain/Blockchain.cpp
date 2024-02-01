@@ -2,7 +2,7 @@
 
 Blockchain::Blockchain()
 {
-
+	
 }
 
 bool Blockchain::operator==(Blockchain& other)
