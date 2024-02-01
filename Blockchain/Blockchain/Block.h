@@ -18,6 +18,7 @@ public:
 	void addTransaction(std::string transaction);
 	static std::string append(Block block);
 	bool mine();
+	bool operator==(Block& other);
 
 
 

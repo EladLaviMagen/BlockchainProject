@@ -19,15 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\RSA\RSA\RSA.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="Blockchain.h" />
     <ClInclude Include="Merkle.h" />
+    <ClInclude Include="Transaction.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\RSA\RSA\RSA.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Blockchain.cpp" />
     <ClCompile Include="Merkle.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Transaction.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
