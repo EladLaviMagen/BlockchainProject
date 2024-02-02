@@ -108,7 +108,7 @@ bool RSA::checkPublic(big e)
 
 
 // RSA decryption using CRT
-std::vector<big> RSA::rsaMain(std::vector<big> data, big k)
+longString RSA::rsaMain(longString data, big k)
 {
     big dp = k % (_p - 1);
     big dq = k % (_q - 1);
@@ -152,23 +152,15 @@ big RSA::generateRandomPrime() {
     return randomNum;
 }
 
-bool RSA::setQ(big q)
+bool RSA::setQAndP(big q, big p)
 {
-    if (isPrime(q))
+    if (isPrime(q) && isPrime(p) && q != p)
     {
         _q = q;
-        return true;
-    }
-    return false;
-}
-
-
-bool RSA::setP(big p)
-{
-    if (isPrime(p))
-    {
         _p = p;
         return true;
     }
     return false;
 }
+
+

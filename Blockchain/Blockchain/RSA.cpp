@@ -19,6 +19,15 @@ big RSA::generatePublic()
     } while (!checkPublic(randomNum));
     return randomNum;
 }
+big RSA::getP()
+{
+    return _p;
+}
+
+big RSA::getQ()
+{
+    return _q;
+}
 /*
 * Function to perform modular exponentiation(base^exp % mod)
 * Input : base, exponent and number to modulo
@@ -108,7 +117,7 @@ bool RSA::checkPublic(big e)
 
 
 // RSA decryption using CRT
-std::vector<big> RSA::rsaMain(std::vector<big> data, big k)
+longString RSA::rsaMain(longString data, big k)
 {
     big dp = k % (_p - 1);
     big dq = k % (_q - 1);
@@ -152,21 +161,11 @@ big RSA::generateRandomPrime() {
     return randomNum;
 }
 
-bool RSA::setQ(big q)
+bool RSA::setQandP(big q, big p)
 {
-    if (isPrime(q))
+    if (isPrime(q) && isPrime(p) && p != q)
     {
         _q = q;
-        return true;
-    }
-    return false;
-}
-
-
-bool RSA::setP(big p)
-{
-    if (isPrime(p))
-    {
         _p = p;
         return true;
     }

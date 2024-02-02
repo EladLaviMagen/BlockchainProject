@@ -5,6 +5,7 @@
 #include <vector>
 
 typedef long long big;
+typedef std::vector<big> longString;
 
 class RSA
 {
@@ -14,12 +15,13 @@ public:
 	RSA();
 	big modInverse(big a);
 	big modInverse(big a, big m);
-	std::vector<big> rsaMain(std::vector<big> data, big k);
+	longString rsaMain(longString data, big k);
 	big modExp(big base, big exp, big mod);
-	bool setQ(big q);
-	bool setP(big p);
+	bool setQandP(big q, big p);
 	bool checkPublic(big e);
 	big generatePublic();
+	big getP();
+	big getQ();
 
 private:
 	

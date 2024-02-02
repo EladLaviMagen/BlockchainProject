@@ -3,14 +3,13 @@
 Block::Block(Header head, std::string prev)
 {
 	_header = head;
-	_data = "";
 	_prevHash = prev;
 	
 }
 
-void Block::addTransaction(std::string transaction)
+void Block::addTransaction(Transaction transaction)
 {
-	_data += transaction;
+	_data.push_back(transaction);
 }
 
 bool Block::operator==(Block& other)

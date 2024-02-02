@@ -4,18 +4,17 @@ int Transaction::t_id = 0;
 
 Transaction::Transaction(int sum, std::string sender, std::string reciever, big* enc)
 {
-	RSA* cipher = new RSA();
-	cipher->setP(enc[P]);
-	cipher->setQ(enc[Q]);
+	RSA cipher = RSA();
+	cipher.setQandP(enc[Q], enc[P]);
 	_sum = sum;
 	_sender = sender;
 	_reciever = reciever;
-	_signature = cipher->rsaMain(getBaseSignature(), enc[PRIVATE]);
+	_signature = cipher.rsaMain(getBaseSignature(), enc[KEY]);
 	_id = t_id;
 	t_id++;
 }
 
-Transaction::Transaction(int sum, std::string sender, std::string reciever, std::vector<big> sig)
+Transaction::Transaction(int sum, std::string sender, std::string reciever, longString sig)
 {
 	_sum = sum;
 	_sender = sender;
@@ -28,7 +27,40 @@ Transaction::Transaction(int sum, std::string sender, std::string reciever, std:
 	}
 }
 
-bool Transaction::verify(Transaction t, big dec)
+int Transaction::verify(Transaction t, big* dec)
 {
-	return false;
+	RSA cipher = RSA();
+	if (!cipher.setQandP(dec[Q], dec[P]))
+	{
+		return BADNUMBERS;
+	}
+	longString signature = t._signature;
+	longString base = t.getBaseSignature();
+	signature = cipher.rsaMain(signature, dec[KEY]);
+	if (signature.size() != base.size())
+	{
+		return FAILED;
+		
+	}
+	for (int i = 0; i < signature.size(); i++)
+	{
+		if (signature[i] != base[i])
+		{
+			return FAILED;
+		}
+	}
+	return VERIFIED;
+}
+
+
+
+longString Transaction::getBaseSignature()
+{
+	longString signature;
+	std::string baseSig = std::to_string(this->_id) + this->_reciever + this->_sender + std::to_string(this->_sum);
+	for (int i = 0; i < baseSig.size(); i++)
+	{
+		signature.push_back(baseSig[i]);
+	}
+	return signature;
 }

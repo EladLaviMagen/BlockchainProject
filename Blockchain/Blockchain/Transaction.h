@@ -3,7 +3,13 @@
 #include <string>
 #include "RSA.h"
 
-#define PRIVATE 0
+
+
+#define BADNUMBERS 0
+#define VERIFIED 1
+#define FAILED 2
+
+#define KEY 0
 #define P 1
 #define Q 2
 class Transaction
@@ -11,17 +17,16 @@ class Transaction
 
 public:
 	Transaction(int sum, std::string sender, std::string reciever, big* enc);
-	Transaction(int sum, std::string sender, std::string reciever, std::vector<big> sig);
-	static bool verify(Transaction t, big dec);
-	std::vector<big> getSignedSignature();
-
+	Transaction(int sum, std::string sender, std::string reciever, longString sig);
+	static int verify(Transaction t, big* dec);
+	
 private:
-	std::vector<big> getBaseSignature();
+	longString getBaseSignature();
 	static int t_id;
 	int _id;
 	int _sum;
 	std::string _sender;
 	std::string _reciever;
-	std::vector<big> _signature;
+	longString _signature;
 };
 
