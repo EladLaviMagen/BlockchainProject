@@ -9,7 +9,7 @@ std::vector<std::string> splitString(const std::string& input, char delimiter);
 
 int main()
 {
-    std::string str = "";
+    std::string str = "elad--";
     std::cin >> str;
     for (int i = 0; i < 10000; i++)
     {
