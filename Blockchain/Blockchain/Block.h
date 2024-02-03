@@ -3,7 +3,11 @@
 #include <string>
 #include <time.h>
 #include "Transaction.h"
+#include "SHA256.h"
 
+#define BLOCK_DELIMETER '\t'
+#define TRANSACTION_DELI '\r'
+#define MAX 20
 struct Header
 {
 	float version;
@@ -17,13 +21,13 @@ class Block
 {
 public:
 	Block(Header head, std::string prev);
-	void addTransaction(Transaction transaction);
+	bool addTransaction(Transaction* transaction);
 	static std::string append(Block block);
 	bool mine();
 	bool operator==(Block& other);
 
 private:
-	std::vector<Transaction> _data;
+	std::vector<Transaction*> _data;
 	Header _header;
 	std::string _prevHash;
 };

@@ -4,7 +4,8 @@
 #include "RSA.h"
 
 
-
+#define DELIMETER '\n'
+#define SIG_DELIMETER '-'
 #define BADNUMBERS 0
 #define VERIFIED 1
 #define FAILED 2
@@ -19,6 +20,7 @@ public:
 	Transaction(int sum, std::string sender, std::string reciever, big* enc);
 	Transaction(int sum, std::string sender, std::string reciever, longString sig);
 	static int verify(Transaction t, big* dec);
+	std::string toString();
 	
 private:
 	longString getBaseSignature();

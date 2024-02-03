@@ -1,5 +1,5 @@
 #pragma once
-#include <list>
+#include <map>
 #include "Block.h"
 class Blockchain
 {
@@ -14,7 +14,7 @@ public:
 	bool operator==(Blockchain& other);
 	
 private:
-	Block* _block;
-	Block* _next;
+	std::map<std::string, Block*> chain;
+	Block* cur_block;
 };
 

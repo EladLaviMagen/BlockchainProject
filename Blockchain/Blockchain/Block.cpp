@@ -7,9 +7,15 @@ Block::Block(Header head, std::string prev)
 	
 }
 
-void Block::addTransaction(Transaction transaction)
+bool Block::addTransaction(Transaction* transaction)
 {
-	_data.push_back(transaction);
+	if (_data.size() < MAX)
+	{
+		_data.push_back(transaction);
+		return true;
+	}
+	return false;
+	
 }
 
 bool Block::operator==(Block& other)
@@ -39,21 +45,24 @@ bool Block::operator==(Block& other)
 
 std::string Block::append(Block block)
 {
-	//std::string head = "" + block._header.nonce + block._header.targetHash + block._header.timestamp + std::to_string(block._header.version) + block._prevHash;
-	//For now, placeholder for what is to come
-	/*
-	* Insert function which appends transactions into the string
-	*/
-	return "";//head + block._data;
+	std::string block_str = std::to_string(block._header.nonce) + BLOCK_DELIMETER + block._header.targetHash + BLOCK_DELIMETER + std::to_string(block._header.timestamp) + BLOCK_DELIMETER + std::to_string(block._header.version) + BLOCK_DELIMETER + block._prevHash + BLOCK_DELIMETER;
+	for (int i = 0; i < block._data.size(); i++)
+	{
+		block_str += block._data[i]->toString();
+		if (i != block._data.size() - 1)
+		{
+			block_str += TRANSACTION_DELI;
+		}
+	}
+	return block_str;
 }
 
 
 bool Block::mine()
 {
 	std::string rawData = append(*this);
-	/*
-	* Insert hashing function and checking with target hash
-	*/
+	std::string hash = SHA256::conv(rawData);
+	//if()
 	return false;
 }
 
