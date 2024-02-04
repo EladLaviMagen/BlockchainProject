@@ -21,6 +21,7 @@ class Block
 {
 public:
 	Block(Header head, std::string prev);
+	~Block();
 	bool addTransaction(Transaction* transaction);
 	static std::string append(Block block);
 	bool mine();

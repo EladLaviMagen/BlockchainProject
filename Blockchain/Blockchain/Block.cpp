@@ -7,6 +7,14 @@ Block::Block(Header head, std::string prev)
 	
 }
 
+Block::~Block()
+{
+	for (int i = 0; i < _data.size(); i++)
+	{
+		delete _data[i];
+	}
+}
+
 bool Block::addTransaction(Transaction* transaction)
 {
 	if (_data.size() < MAX)
