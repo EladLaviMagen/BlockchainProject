@@ -9,6 +9,7 @@
 #include <thread>
 #include "Helper.h"
 #include <map>
+#include <exception>
 #pragma comment(lib, "ws2_32.lib")
 #pragma warning(disable: 4996)
 
@@ -22,6 +23,7 @@ public:
 	//Declarations
 	static void recieveMessageAndHandle(SOCKET sc);
 	static void connectMoreUsers(SOCKET listenSocket, int port);
+	static int start();
 private:
 	
 
