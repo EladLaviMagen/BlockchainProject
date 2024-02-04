@@ -1,6 +1,7 @@
 #include "Peer.h"
 
-
+std::map<int, SOCKET> Peer::users;
+WSADATA Peer::wsaData;
 
 int Peer::start()
 {
@@ -33,10 +34,10 @@ int Peer::start()
 
         //Connecting
         if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-            int error = WSAGetLastError();
-            std::cerr << "Connection failed with error: " << error << "\n";
+            //int error = WSAGetLastError();
+            //std::cerr << "Connection failed with error: " << error << "\n";
             closesocket(clientSocket);
-            WSACleanup();
+            //WSACleanup();
             throw std::exception();
         }
         //Setting position in map
@@ -75,7 +76,7 @@ int Peer::start()
                 finalIndex++;
             }
             int userPort = std::atoi(input.substr(1, finalIndex - 1).c_str());
-            input = std::to_string(port) + " --> " + input;
+            input = std::to_string(userPort) + " --> " + input.substr(finalIndex + 1, input.length() - 1);
             if (Peer::users.find(userPort) != Peer::users.end())
             {
                 Helper::sendData(Peer::users[userPort], Helper::getPaddedNumber(input.length(), 5) + input);
@@ -115,6 +116,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
     {
         while (true)
         {
+            int port = 0;
             //Getting length of message
             int length = Helper::getIntPartFromSocket(sc, 5);
             //Getting the rest of the message

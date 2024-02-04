@@ -4,6 +4,7 @@ int main()
 {
 	return Peer::start();
 }
+
 //{
 //    int port = 0;
 //    if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) {
