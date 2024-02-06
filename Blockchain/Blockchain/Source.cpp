@@ -1,15 +1,16 @@
 #include <iostream>
 #include "Blockchain.h"
 #pragma warning(disable: 4996)
-#include <sstream>
-std::vector<std::string> splitString(const std::string& input, char delimiter);
+
+
 #define TROLLAGE "0009320301a33902c9533651e4ab1f0799a7e9f4f53022d7a6728dbfeb91d83b"
 
 
 int main()
 {
-    time_t time = 55;
-    Header head = { 1, 2, time, "Elad" };
+    
+    time_t time = std::time(nullptr);
+    Header head = { 1, 2, time, "Rah" };
     std::string str = "";
     Blockchain b = Blockchain();
     Block* genesis = new Block(head, "0");
@@ -38,6 +39,8 @@ int main()
     b.addBlock(first, "1");
     b.addBlock(second, "2");
     str = b.toString();
+    Blockchain check = Blockchain(str);
+
 
     delete genesis;
     delete first;
@@ -61,14 +64,3 @@ int main()
     return 0;
 }
 
-std::vector<std::string> splitString(const std::string& input, char delimiter) {
-    std::vector<std::string> tokens;
-    std::istringstream tokenStream(input);
-    std::string token;
-
-    while (std::getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
-    }
-
-    return tokens;
-}

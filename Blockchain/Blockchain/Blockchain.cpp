@@ -10,7 +10,11 @@ std::string Blockchain::toString()
 	std::string str = "";
 	for (auto it = chain.begin(); it != chain.end(); it++)
 	{
-		str += Block::append(*(it->second)) + CHAIN_DELIM;
+		str += (it->second)->append() + CHAIN_DELIM;
+	}
+	if (cur_block != nullptr)
+	{
+		str += cur_block->append();
 	}
 	return str;
 }
@@ -22,7 +26,21 @@ bool Blockchain::operator==(Blockchain& other)
 
 Blockchain::Blockchain(std::string chainInfo)
 {
-
+	std::vector<std::string> blocks = FileManager::splitString(chainInfo, CHAIN_DELIM);
+	if (blocks.size() < 2)
+	{
+		cur_block = new Block(blocks[0]);
+	}
+	else
+	{
+		for (int i = 0; i < blocks.size() - 1; i++)
+		{
+			Block* prev = new Block(blocks[i]);
+			cur_block = new Block(blocks[i + 1]);
+			chain[cur_block->getPrev()] = prev;
+		}
+	}
+	
 }
 
 

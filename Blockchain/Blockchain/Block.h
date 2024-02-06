@@ -1,6 +1,4 @@
 #pragma once
-#include <iostream>
-#include <string>
 #include <time.h>
 #include "Transaction.h"
 #include "SHA256.h"
@@ -8,6 +6,13 @@
 #define BLOCK_DELIMETER '\t'
 #define TRANSACTION_DELI '\r'
 #define MAX 20
+
+#define NONCE 0
+#define TARGET 1
+#define TIMESTAMP 2
+#define VERSION 3
+#define PREV 4
+
 struct Header
 {
 	float version;
@@ -21,11 +26,13 @@ class Block
 {
 public:
 	Block(Header head, std::string prev);
+	Block(std::string str);
 	~Block();
 	bool addTransaction(Transaction* transaction);
-	static std::string append(Block block);
+	std::string append();
 	bool mine();
 	bool operator==(Block& other);
+	std::string getPrev();
 
 private:
 	std::vector<Transaction*> _data;

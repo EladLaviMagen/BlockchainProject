@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Block.h" />
     <ClInclude Include="Blockchain.h" />
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Merkle.h" />
     <ClInclude Include="RSA.h" />
     <ClInclude Include="SHA256.h" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Blockchain.cpp" />
+    <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Merkle.cpp" />
     <ClCompile Include="RSA.cpp" />
     <ClCompile Include="SHA256.cpp" />

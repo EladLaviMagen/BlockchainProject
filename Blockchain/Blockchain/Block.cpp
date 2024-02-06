@@ -5,6 +5,50 @@ Block::Block(Header head, std::string prev)
 	_header = head;
 	_prevHash = prev;
 	
+	
+}
+
+Block::Block(std::string str)
+{
+	std::vector<std::string> info = FileManager::splitString(str, BLOCK_DELIMETER);
+	_header.nonce = std::stoi(info[NONCE]);
+	_header.targetHash = info[TARGET];
+	_header.timestamp = std::stoll(info[TIMESTAMP]);
+	_header.version = std::stof(info[VERSION]);
+	_prevHash = info[PREV];
+	if (info.size() != 5)
+	{
+		std::vector<std::string> transactions = FileManager::splitString(info[info.size() - 1], TRANSACTION_DELI);
+		for (int i = 0; i < transactions.size(); i++)
+		{
+			Transaction* t = new Transaction(transactions[i]);
+			if (!addTransaction(t))
+			{
+				throw(std::exception());
+			}
+		}
+	}
+	
+	
+}
+
+
+std::string Block::append()
+{
+	std::string block_str = std::to_string(this->_header.nonce) + BLOCK_DELIMETER + this->_header.targetHash + BLOCK_DELIMETER + std::to_string(this->_header.timestamp) + BLOCK_DELIMETER + std::to_string(this->_header.version) + BLOCK_DELIMETER + this->_prevHash;
+	if (_data.size() != 0)
+	{
+		block_str += BLOCK_DELIMETER;
+	}
+	for (int i = 0; i < this->_data.size(); i++)
+	{
+		block_str += this->_data[i]->toString();
+		if (i != this->_data.size() - 1)
+		{
+			block_str += TRANSACTION_DELI;
+		}
+	}
+	return block_str;
 }
 
 Block::~Block()
@@ -51,24 +95,17 @@ bool Block::operator==(Block& other)
 	return true;
 }
 
-std::string Block::append(Block block)
+std::string Block::getPrev()
 {
-	std::string block_str = std::to_string(block._header.nonce) + BLOCK_DELIMETER + block._header.targetHash + BLOCK_DELIMETER + std::to_string(block._header.timestamp) + BLOCK_DELIMETER + std::to_string(block._header.version) + BLOCK_DELIMETER + block._prevHash + BLOCK_DELIMETER;
-	for (int i = 0; i < block._data.size(); i++)
-	{
-		block_str += block._data[i]->toString();
-		if (i != block._data.size() - 1)
-		{
-			block_str += TRANSACTION_DELI;
-		}
-	}
-	return block_str;
+	return _prevHash;
 }
+
+
 
 
 bool Block::mine()
 {
-	std::string rawData = append(*this);
+	std::string rawData = append();
 	std::string hash = SHA256::conv(rawData);
 	//if()
 	return false;

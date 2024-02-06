@@ -2,7 +2,7 @@
 
 int Transaction::t_id = 0;
 
-Transaction::Transaction(int sum, std::string sender, std::string reciever, big* enc)
+Transaction::Transaction(float sum, std::string sender, std::string reciever, big* enc)
 {
 	RSA cipher = RSA();
 	cipher.setQandP(enc[Q], enc[P]);
@@ -14,7 +14,7 @@ Transaction::Transaction(int sum, std::string sender, std::string reciever, big*
 	t_id++;
 }
 
-Transaction::Transaction(int sum, std::string sender, std::string reciever, longString sig)
+Transaction::Transaction(float sum, std::string sender, std::string reciever, longString sig)
 {
 	_sum = sum;
 	_sender = sender;
@@ -26,6 +26,8 @@ Transaction::Transaction(int sum, std::string sender, std::string reciever, long
 		_signature.push_back(sig[i]);
 	}
 }
+
+
 
 int Transaction::verify(Transaction t, big* dec)
 {
@@ -52,6 +54,21 @@ int Transaction::verify(Transaction t, big* dec)
 	return VERIFIED;
 }
 
+Transaction::Transaction(std::string str)
+{
+	std::vector<std::string> info = FileManager::splitString(str, DELIMETER);
+	std::vector<std::string> signature = FileManager::splitString(info[info.size() - 1], SIG_DELIMETER);
+	_id = std::stoi(info[ID]);
+	_sum = std::stof(info[SUM]);
+	_sender = info[SENDER];
+	_reciever = info[RECV];
+	for (int i = 0; i < signature.size(); i++)
+	{
+		_signature.push_back(std::stoll(signature[i]));
+	}
+
+}
+
 std::string Transaction::toString()
 {
 	std::string data = std::to_string(this->_id) + DELIMETER + this->_reciever + DELIMETER + this->_sender + DELIMETER + std::to_string(this->_sum) + DELIMETER;
@@ -66,7 +83,6 @@ std::string Transaction::toString()
 	}
 	return data + signature_str;
 }
-
 
 
 longString Transaction::getBaseSignature()
