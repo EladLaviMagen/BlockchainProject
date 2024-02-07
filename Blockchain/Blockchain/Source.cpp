@@ -8,6 +8,7 @@
 
 int main()
 {
+       
 
     time_t time = std::time(nullptr);
     Header head = { 1, 2, time, "Rah" };
@@ -52,22 +53,25 @@ int main()
         std::cout << "Legendery!";
     }
 
-   
-   /* RSA cipher = RSA();
-    big e = cipher.generatePublic();
-    big* nums = new big[3];
-    nums[Q] = cipher.getQ();
-    nums[P] = cipher.getP();
-    nums[KEY] = e;
-    
-    Transaction t = Transaction(50, "Elad", "Maayan", nums);
-    big d = cipher.modInverse(e);
-    nums[KEY] = d;
-    if (VERIFIED == Transaction::verify(t, nums))
+
+    RSA cipher1 = RSA();
+    big ek = cipher1.generatePublic();
+    big* nums1 = new big[3];
+    nums1[Q] = cipher1.getQ();
+    nums1[P] = cipher1.getP();
+    nums1[KEY] = ek;
+
+    Transaction tt = Transaction(50, "Elad", "Maayan", nums1);
+    big d = cipher1.modInverse(ek);
+    nums1[KEY] = d;
+    if (VERIFIED == Transaction::verify(tt, nums1))
     {
         std::cout << "We good!" << std::endl;
     }
-    delete[] nums;*/
+   
+   
+    delete[] nums1;
+    delete[] nums;
     return 0;
 }
 

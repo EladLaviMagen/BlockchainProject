@@ -9,8 +9,8 @@ Transaction::Transaction(float sum, std::string sender, std::string reciever, bi
 	_sum = sum;
 	_sender = sender;
 	_reciever = reciever;
-	_signature = cipher.rsaMain(getBaseSignature(), enc[KEY]);
 	_id = t_id;
+	_signature = cipher.rsaMain(getBaseSignature(), enc[KEY]);
 	t_id++;
 }
 
