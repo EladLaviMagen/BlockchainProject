@@ -8,6 +8,7 @@ class Blockchain
 
 public:
 	Blockchain();
+	~Blockchain();
 	std::string toString();
 	Blockchain(std::string chainInfo);
 	int getCoinsOf(std::string user);

@@ -54,6 +54,21 @@ int Transaction::verify(Transaction t, big* dec)
 	return VERIFIED;
 }
 
+std::string Transaction::getRecv()
+{
+	return _reciever;
+}
+
+std::string Transaction::getSender()
+{
+	return _sender;
+}
+
+float Transaction::getSum()
+{
+	return _sum;
+}
+
 Transaction::Transaction(std::string str)
 {
 	std::vector<std::string> info = FileManager::splitString(str, DELIMETER);

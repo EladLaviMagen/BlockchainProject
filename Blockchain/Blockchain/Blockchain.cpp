@@ -2,6 +2,22 @@
 
 Blockchain::Blockchain()
 {
+	cur_block = nullptr;
+}
+
+Blockchain::~Blockchain()
+{
+	if (chain.size() != 0)
+	{
+		for (auto it = chain.begin(); it != chain.end(); it++)
+		{
+			delete it->second;
+		}
+	}
+	if (cur_block != nullptr)
+	{
+		delete cur_block;
+	}
 	
 }
 
@@ -19,10 +35,6 @@ std::string Blockchain::toString()
 	return str;
 }
 
-bool Blockchain::operator==(Blockchain& other)
-{
-	return true;
-}
 
 Blockchain::Blockchain(std::string chainInfo)
 {
@@ -46,11 +58,20 @@ Blockchain::Blockchain(std::string chainInfo)
 
 int Blockchain::getCoinsOf(std::string user)
 {
-	return 0;
+	float sum = 0;
+	if (chain.begin() != chain.end())
+	{
+		for (auto it = chain.begin(); it != chain.end(); it++)
+		{
+			sum += it->second->getCoins(user);
+		}
+	}
+	return sum;
 }
 
 void Blockchain::update(std::string newData)
 {
+
 }
 
 bool Blockchain::addBlock(Block* newBlock, std::string prev)

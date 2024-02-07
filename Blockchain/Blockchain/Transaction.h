@@ -17,6 +17,8 @@
 #define KEY 0
 #define P 1
 #define Q 2
+
+
 class Transaction
 {
 
@@ -25,6 +27,9 @@ public:
 	Transaction(float sum, std::string sender, std::string reciever, longString sig);
 	Transaction(std::string str);
 	static int verify(Transaction t, big* dec);
+	std::string getRecv();
+	std::string getSender();
+	float getSum();
 	std::string toString();
 	
 private:

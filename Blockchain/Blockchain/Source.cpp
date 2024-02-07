@@ -8,7 +8,7 @@
 
 int main()
 {
-    
+
     time_t time = std::time(nullptr);
     Header head = { 1, 2, time, "Rah" };
     std::string str = "";
@@ -32,19 +32,26 @@ int main()
     first->addTransaction(t1);
     first->addTransaction(t2);
 
-    second->addTransaction(t2);
-    second->addTransaction(t1);
-    second->addTransaction(t);
+    Transaction* t12 = new Transaction(50, "Elad", "Maayan", nums);
+    Transaction* t11 = new Transaction(25, "Elad", "Maayan", nums);
+    Transaction* t21 = new Transaction(10, "Elad", "Maayan", nums);
+    second->addTransaction(t21);
+    second->addTransaction(t11);
+    second->addTransaction(t12);
     b.addBlock(genesis, "0");
     b.addBlock(first, "1");
     b.addBlock(second, "2");
     str = b.toString();
     Blockchain check = Blockchain(str);
+    std::string checkstr = check.toString();
+    FileManager::save(checkstr, PATH);
+    std::string loaded = FileManager::load(PATH);
+    std::cout << b.getCoinsOf("Elad") << std::endl;
+    if (loaded == checkstr)
+    {
+        std::cout << "Legendery!";
+    }
 
-
-    delete genesis;
-    delete first;
-    delete second;
    
    /* RSA cipher = RSA();
     big e = cipher.generatePublic();

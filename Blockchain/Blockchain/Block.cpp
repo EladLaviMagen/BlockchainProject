@@ -32,6 +32,23 @@ Block::Block(std::string str)
 	
 }
 
+float Block::getCoins(std::string user)
+{
+	float sum = 0;
+	for (int i = 0; i < _data.size(); i++)
+	{
+		if (_data[i]->getRecv() == user)
+		{
+			sum += _data[i]->getSum();
+		}
+		else if (_data[i]->getSender() == user)
+		{
+			sum -= _data[i]->getSum();
+		}
+	}
+	return sum;
+}
+
 
 std::string Block::append()
 {

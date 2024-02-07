@@ -22,11 +22,13 @@ struct Header
 
 }typedef Header;
 
+
 class Block
 {
 public:
 	Block(Header head, std::string prev);
 	Block(std::string str);
+	float getCoins(std::string user);
 	~Block();
 	bool addTransaction(Transaction* transaction);
 	std::string append();
