@@ -136,9 +136,7 @@ longString RSA::rsaMain(longString data, big k)
 
 
 bool RSA::isPrime(big num) {
-    if (num <= 1) {
-        return false;
-    }
+    
     for (int i = 2; i * i <= num; ++i) {
         if (num % i == 0) {
             return false;
@@ -147,15 +145,18 @@ bool RSA::isPrime(big num) {
     return true;
 }
 
-big RSA::generateRandomPrime() {
+big RSA::generateRandomPrime() 
+{
     srand(time(0)); // Seed for random number generation
 
-    int lowerBound = 50000;
-    int upperBound = 100000;
+    big lowerBound = 500000;
+    big upperBound = 1000000;
 
     big randomNum;
     do {
         randomNum = rand() % (upperBound - lowerBound + 1) + lowerBound;
+        randomNum = randomNum << 1;
+        randomNum++;
     } while (!isPrime(randomNum));
 
     return randomNum;

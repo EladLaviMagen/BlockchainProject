@@ -3,12 +3,12 @@
 #pragma warning(disable: 4996)
 
 
+
 #define TROLLAGE "0009320301a33902c9533651e4ab1f0799a7e9f4f53022d7a6728dbfeb91d83b"
 
 
 int main()
 {
-       
 
     time_t time = std::time(nullptr);
     Header head = { 1, 2, time, "Rah" };
@@ -47,7 +47,7 @@ int main()
     std::string checkstr = check.toString();
     FileManager::save(checkstr, PATH);
     std::string loaded = FileManager::load(PATH);
-    std::cout << b.getCoinsOf("Elad") << std::endl;
+    std::cout << b.getCoinsOf("Maayan") << std::endl;
     if (loaded == checkstr)
     {
         std::cout << "Legendery!";
@@ -59,11 +59,11 @@ int main()
     big* nums1 = new big[3];
     nums1[Q] = cipher1.getQ();
     nums1[P] = cipher1.getP();
-    nums1[KEY] = ek;
+    nums1[KEY] = cipher1.modInverse(ek);
 
     Transaction tt = Transaction(50, "Elad", "Maayan", nums1);
     big d = cipher1.modInverse(ek);
-    nums1[KEY] = d;
+    nums1[KEY] = ek;
     if (VERIFIED == Transaction::verify(tt, nums1))
     {
         std::cout << "We good!" << std::endl;
