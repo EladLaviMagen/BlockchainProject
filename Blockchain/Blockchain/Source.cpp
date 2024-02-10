@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Blockchain.h"
+#include "Peer.h"
 #pragma warning(disable: 4996)
 
 
@@ -9,69 +10,8 @@
 
 int main()
 {
-
-    time_t time = std::time(nullptr);
-    Header head = { 1, 2, time, "Rah" };
-    std::string str = "";
-    Blockchain b = Blockchain();
-    Block* genesis = new Block(head, "0");
-    Block* first = new Block(head, "1");
-    Block* second = new Block(head, "2");
-
-
-    RSA cipher = RSA();
-    big e = cipher.generatePublic();
-    big* nums = new big[3];
-    nums[Q] = cipher.getQ();
-    nums[P] = cipher.getP();
-    nums[KEY] = e;
-
-    Transaction* t = new Transaction(50, "Elad", "Maayan", nums);
-    Transaction* t1 = new Transaction(25, "Elad", "Maayan", nums);
-    Transaction* t2 = new Transaction(10, "Elad", "Maayan", nums);
-    first->addTransaction(t);
-    first->addTransaction(t1);
-    first->addTransaction(t2);
-
-    Transaction* t12 = new Transaction(50, "Elad", "Maayan", nums);
-    Transaction* t11 = new Transaction(25, "Elad", "Maayan", nums);
-    Transaction* t21 = new Transaction(10, "Elad", "Maayan", nums);
-    second->addTransaction(t21);
-    second->addTransaction(t11);
-    second->addTransaction(t12);
-    b.addBlock(genesis, "0");
-    b.addBlock(first, "1");
-    b.addBlock(second, "2");
-    str = b.toString();
-    Blockchain check = Blockchain(str);
-    std::string checkstr = check.toString();
-    FileManager::save(checkstr, PATH);
-    std::string loaded = FileManager::load(PATH);
-    std::cout << b.getCoinsOf("Maayan") << std::endl;
-    if (loaded == checkstr)
-    {
-        std::cout << "Legendery!";
-    }
-
-
-    RSA cipher1 = RSA();
-    big ek = cipher1.generatePublic();
-    big* nums1 = new big[3];
-    nums1[Q] = cipher1.getQ();
-    nums1[P] = cipher1.getP();
-    nums1[KEY] = cipher1.modInverse(ek);
-
-    Transaction tt = Transaction(50, "Elad", "Maayan", nums1);
-    big d = cipher1.modInverse(ek);
-    nums1[KEY] = ek;
-    if (VERIFIED == Transaction::verify(tt, nums1))
-    {
-        std::cout << "We good!" << std::endl;
-    }
-   
-   
-    delete[] nums1;
-    delete[] nums;
+    Peer::start();
+    
     return 0;
 }
 

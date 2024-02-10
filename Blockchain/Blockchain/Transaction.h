@@ -15,8 +15,8 @@
 #define SUM 3
 
 #define KEY 0
-#define P 1
-#define Q 2
+#define RSA_P 1
+#define RSA_Q 2
 
 
 class Transaction

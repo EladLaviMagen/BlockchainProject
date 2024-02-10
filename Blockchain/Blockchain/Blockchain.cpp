@@ -38,6 +38,7 @@ std::string Blockchain::toString()
 
 Blockchain::Blockchain(std::string chainInfo)
 {
+	cur_block = nullptr;
 	std::vector<std::string> blocks = FileManager::splitString(chainInfo, CHAIN_DELIM);
 	if (blocks.size() < 2)
 	{
@@ -56,7 +57,7 @@ Blockchain::Blockchain(std::string chainInfo)
 }
 
 
-int Blockchain::getCoinsOf(std::string user)
+float Blockchain::getCoinsOf(std::string user)
 {
 	float sum = 0;
 	if (chain.begin() != chain.end())

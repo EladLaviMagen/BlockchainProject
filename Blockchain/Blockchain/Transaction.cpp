@@ -5,7 +5,7 @@ int Transaction::t_id = 0;
 Transaction::Transaction(float sum, std::string sender, std::string reciever, big* enc)
 {
 	RSA cipher = RSA();
-	cipher.setQandP(enc[Q], enc[P]);
+	cipher.setQandP(enc[RSA_Q], enc[RSA_P]);
 	_sum = sum;
 	_sender = sender;
 	_reciever = reciever;
@@ -32,7 +32,7 @@ Transaction::Transaction(float sum, std::string sender, std::string reciever, lo
 int Transaction::verify(Transaction t, big* dec)
 {
 	RSA cipher = RSA();
-	if (!cipher.setQandP(dec[Q], dec[P]))
+	if (!cipher.setQandP(dec[RSA_Q], dec[RSA_P]))
 	{
 		return BADNUMBERS;
 	}
