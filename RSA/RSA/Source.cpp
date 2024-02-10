@@ -1,31 +1,52 @@
 #include <iostream>
 #include <cmath>
+#include "RSA.h"
 
 //declarations
 long long modInverse(long long a, long long m);
 long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q);
-
+long long modExp(long long base, long long exp, long long mod);
 
 int main() 
 {
-    unsigned long long p = 7919; // Replace with your prime p
-    unsigned long long q = 5839; // Replace with your prime q
-    long long N = p * q;
-    long long totient = (p - 1) * (q - 1);
+    //unsigned long long p = 97579; // Replace with your prime p
+    //unsigned long long q = 97583; // Replace with your prime q
+    //long long N = p * q;
+    //long long totient = (p - 1) * (q - 1);
 
-    long long e = 17; // Replace with your public exponent e
-    long long d = modInverse(e, totient); // Calculate private exponent d
+    //long long e = 999983; // Replace with your public exponent e
+    //long long d = modInverse(e, totient); // Calculate private exponent d
+    //for (int i = 0; i < 300; i++)
+    //{
+    //    long long plaintext = std::rand() % 122 + 61;  // Replace with your plaintext
+    //    std::cout << "Original plaintext: " << plaintext << std::endl;
 
-    long long plaintext = 42; // Replace with your plaintext
-    std::cout << "Original plaintext: " << plaintext << std::endl;
+    //    //Encryption
+    //    long long ciphertext = rsaDecrypt(plaintext, e, p, q);
+    //    std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
 
-    //Encryption
-    long long ciphertext = modExp(plaintext, e, N);
-    std::cout << "Encrypted ciphertext: " << ciphertext << std::endl;
+    //    // Decryption using CRT
+    //    long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
+    //    std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+    //}
+    RSA cipher;
+    std::vector<big> word;
+    std::string data = "";
+    std::getline(std::cin, data);
+    for (int i = 0; i < data.size(); i++)
+    {
+        word.push_back(data[i]);
+    }
 
-    // Decryption using CRT
-    long long decryptedText = rsaDecrypt(ciphertext, d, p, q);
-    std::cout << "Decrypted plaintext using CRT: " << decryptedText << std::endl;
+    big e = cipher.generatePublic();
+    word = cipher.rsaMain(word, e);
+    word = cipher.rsaMain(word, cipher.modInverse(e));
+    for (int i = 0; i < word.size(); i++)
+    {
+        std::cout << (char)word[i];
+    }
+
+    
 
     return 0;
 }
@@ -58,7 +79,8 @@ long long modExp(long long base, long long exp, long long mod)
 }
 
 // Function to calculate modular multiplicative inverse using Extended Euclidean Algorithm
-long long modInverse(long long a, long long m) {
+long long modInverse(long long a, long long m) 
+{
     long long m0 = m;
     long long y = 0, x = 1;
     if (m == 1) {
@@ -81,7 +103,8 @@ long long modInverse(long long a, long long m) {
 
 
 // RSA decryption using CRT
-long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q) {
+long long rsaDecrypt(long long ciphertext, long long d, long long p, long long q) 
+{
     long long dp = d % (p - 1);
     long long dq = d % (q - 1);
 

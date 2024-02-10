@@ -18,12 +18,12 @@
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AES.cpp">
+    <ClCompile Include="SHA256.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AES.h">
+    <ClInclude Include="SHA256.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

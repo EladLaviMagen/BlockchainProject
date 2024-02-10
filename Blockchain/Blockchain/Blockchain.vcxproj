@@ -18,11 +18,30 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Block.h" />
+    <ClInclude Include="Blockchain.h" />
+    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="Merkle.h" />
+    <ClInclude Include="RSA.h" />
+    <ClInclude Include="SHA256.h" />
+    <ClInclude Include="Transaction.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Blockchain.cpp" />
+    <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="Merkle.cpp" />
+    <ClCompile Include="RSA.cpp" />
+    <ClCompile Include="SHA256.cpp" />
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Transaction.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{6f8beb07-ef08-4ed0-bee1-a7d7e8124e87}</ProjectGuid>
-    <RootNamespace>AESPOC</RootNamespace>
+    <ProjectGuid>{cd781fd8-05a8-4246-9b4f-9fc602e51d48}</ProjectGuid>
+    <RootNamespace>Blockchain</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -126,13 +145,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="AES.cpp" />
-    <ClCompile Include="Source.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AES.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
