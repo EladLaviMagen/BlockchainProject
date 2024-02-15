@@ -4,8 +4,7 @@ int Transaction::t_id = 0;
 
 Transaction::Transaction(float sum, std::string sender, std::string reciever, big* enc)
 {
-	RSA cipher = RSA();
-	cipher.setQandP(enc[RSA_Q], enc[RSA_P]);
+	RSA cipher = RSA(enc[RSA_P], enc[RSA_Q]);
 	_sum = sum;
 	_sender = sender;
 	_reciever = reciever;

@@ -13,6 +13,7 @@ class RSA
 public:
 	//declarations
 	RSA();
+	RSA(big p, big q);
 	big modInverse(big a);
 	big modInverse(big a, big m);
 	longString rsaMain(longString data, big k);

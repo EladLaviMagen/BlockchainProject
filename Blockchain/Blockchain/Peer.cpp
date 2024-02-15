@@ -288,11 +288,12 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
             //Setting up message to inform others of the new user
             if (NEW_USER == flag)
             {
+                //Getting RSA parts
                 std::string pubKey = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
                 std::string p = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
                 std::string q = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
-                RSA rsa = RSA();
-                rsa.setQandP(std::stoll(q), std::stoll(p));
+                RSA rsa = RSA(std::stoll(p), std::stoll(q));
+                //Preparing AES key and encrypting it using RSA
                 AES aes = AES();
                 std::string key = aes.getKey();
                 longString encryptedKey;
@@ -303,7 +304,8 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 encryptedKey = rsa.rsaMain(encryptedKey, std::stoll(pubKey));
                 for (int i = 0; i < HEX; i++)
                 {
-                    Helper::sendData(clientSocket, std::to_string(encryptedKey[i]));
+                    //Sending it to the user, letter by letter
+                    Helper::sendData(clientSocket, Helper::getPaddedNumber(encryptedKey[i], BIG_SIZE));
                 }
                 std::string port_str = Helper::getStringPartFromSocket(clientSocket, HEX);
                 port_str = aes.decrypt(port_str);

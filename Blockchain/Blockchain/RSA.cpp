@@ -9,13 +9,23 @@ RSA::RSA()
         _q = generateRandomPrime();
     }
 }
+RSA::RSA(big p, big q)
+{
+    if (q == p || !isPrime(p) || !isPrime(q))
+    {
+        throw(std::exception());
+    }
+    _q = q;
+    _p = p;
+    
+}
 big RSA::generatePublic()
 {
     srand(time(0)); // Seed for random number generation
     big randomNum = 0;
     do 
     {
-        randomNum = rand() % 11111223211;
+        randomNum = rand() % 122311313112;
     } while (!checkPublic(randomNum));
     return randomNum;
 }
@@ -149,8 +159,8 @@ big RSA::generateRandomPrime()
 {
     srand(time(0)); // Seed for random number generation
 
-    big lowerBound = 500000;
-    big upperBound = 1000000;
+    big lowerBound = 50000;
+    big upperBound = 100000;
 
     big randomNum;
     do {

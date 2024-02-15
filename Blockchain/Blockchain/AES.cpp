@@ -149,7 +149,7 @@ std::string AES::matrixesToString(unsigned char*** input, int size)
             {
                
                //std::cout << std::hex << (int)input[i][k][j] << " ";
-               res += input[i][k][j];
+                res += input[i][k][j];
             }
         }
     }
@@ -502,7 +502,8 @@ void AES::GKey()
     {
         for (unsigned int j = 0; j < SIZE; j++)
         {
-            _key[i][j] = std::rand() % 255 + 1;
+            _key[i][j] = std::rand() % 127 + 1;
+            
         }
     }
 }
