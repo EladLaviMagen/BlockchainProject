@@ -26,6 +26,7 @@
     <ClInclude Include="Helper.h" />
     <ClInclude Include="Merkle.h" />
     <ClInclude Include="Peer.h" />
+    <ClInclude Include="Requests.h" />
     <ClInclude Include="RSA.h" />
     <ClInclude Include="SHA256.h" />
     <ClInclude Include="Transaction.h" />

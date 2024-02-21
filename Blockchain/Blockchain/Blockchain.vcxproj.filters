@@ -45,6 +45,9 @@
     <ClInclude Include="AES.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Requests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp">

@@ -12,6 +12,7 @@
 #include "RSA.h"
 #include <map>
 #include <exception>
+#include "Requests.h"
 #pragma comment(lib, "ws2_32.lib")
 #pragma warning(disable: 4996)
 
@@ -35,6 +36,9 @@ private:
 	static WSADATA wsaData;
 	static bool checkPort(std::string port);
 	static bool checkNum(std::string num);
+	static std::string keyExchangeRecieving(SOCKET clientSocket);
+	static std::string keyExchangeEntering(SOCKET clientSocket);
+	static void sendDetails(SOCKET clientSocket);
 
 
 };

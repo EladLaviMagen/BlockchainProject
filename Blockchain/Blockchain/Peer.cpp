@@ -6,6 +6,7 @@ WSADATA Peer::wsaData;
 int Peer::start()
 {
     int port = 0;
+    std::string name = "Boss";
     if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) {
         std::cerr << "WSAStartup failed\n";
         return 1;
@@ -52,25 +53,9 @@ int Peer::start()
             std::getline(std::cin, port_str);
         }
         port = std::stoi(port_str);
-        RSA rsa = RSA();
-        big e = rsa.generatePublic();
-        Helper::sendData(clientSocket, "a" + Helper::getPaddedNumber(e, BIG_SIZE));
-        Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getP(), BIG_SIZE));
-        Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getQ(), BIG_SIZE));
-
-        longString aes_key;
         
-        for (int i = 0; i < HEX; i++)
-        {
-            aes_key.push_back(Helper::getBigPartFromSocket(clientSocket, BIG_SIZE));
-        }
-        aes_key = rsa.rsaMain(aes_key, rsa.modInverse(e));
-        std::string key_str = "";
-        for (int i = 0; i < HEX; i++)
-        {
-            key_str += (char)aes_key[i];
-        }
-        AES aes = AES(key_str);
+        AES aes = AES(keyExchangeEntering(clientSocket));
+       
         Helper::sendData(clientSocket, aes.encrypt(port_str));
         //Calling threads to handle messages and connections of other users
         std::thread t(Peer::recieveMessageAndHandle, clientSocket);
@@ -117,11 +102,15 @@ int Peer::start()
 
 
     }
-    // Handle communication with connected peer
-    for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
+    if (Peer::users.begin() != Peer::users.end())
     {
-        closesocket(it->second);
+        for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
+        {
+            closesocket(it->second);
+        }
     }
+    // Handle communication with connected peer
+    
     closesocket(listenSocket);
     WSACleanup();
     return 0;
@@ -146,6 +135,57 @@ bool Peer::checkNum(std::string num)
         }
     }
     return true;
+}
+
+std::string Peer::keyExchangeRecieving(SOCKET clientSocket)
+{
+    //Getting RSA parts
+    std::string pubKey = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
+    std::string p = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
+    std::string q = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
+    RSA rsa = RSA(std::stoll(p), std::stoll(q));
+    //Preparing AES key and encrypting it using RSA
+    AES aes = AES();
+    std::string key = aes.getKey();
+    longString encryptedKey;
+    for (int i = 0; i < HEX; i++)
+    {
+        encryptedKey.push_back(key[i]);
+    }
+    encryptedKey = rsa.rsaMain(encryptedKey, std::stoll(pubKey));
+    for (int i = 0; i < HEX; i++)
+    {
+        //Sending it to the user, letter by letter
+        Helper::sendData(clientSocket, Helper::getPaddedNumber(encryptedKey[i], BIG_SIZE));
+    }
+    return key;
+}
+
+std::string Peer::keyExchangeEntering(SOCKET clientSocket)
+{
+    RSA rsa = RSA();
+    big e = rsa.generatePublic();
+    Helper::sendData(clientSocket, "a" + Helper::getPaddedNumber(e, BIG_SIZE));
+    Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getP(), BIG_SIZE));
+    Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getQ(), BIG_SIZE));
+
+    longString aes_key;
+
+    for (int i = 0; i < HEX; i++)
+    {
+        aes_key.push_back(Helper::getBigPartFromSocket(clientSocket, BIG_SIZE));
+    }
+    aes_key = rsa.rsaMain(aes_key, rsa.modInverse(e));
+    std::string key_str = "";
+    for (int i = 0; i < HEX; i++)
+    {
+        key_str += (char)aes_key[i];
+    }
+    return key_str;
+}
+
+void Peer::sendDetails(SOCKET clientSocket)
+{
 }
 
 
@@ -210,6 +250,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                     {
                         std::cout << "User " << it->first << " disconnected\n";
                         users.erase(it->first);
+                        break;
                     }
                 }
                 closesocket(sc);
@@ -221,6 +262,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
     }
     catch (std::exception ex)
     {
+
         for (auto it = users.begin(); it != users.end(); it++)
         {
             if (it->second == sc)
@@ -282,31 +324,13 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 closesocket(listenSocket);
                 WSACleanup();
             }
-            //Getting his port
+            //Getting his details
             std::string flag = Helper::getStringPartFromSocket(clientSocket, 1);
             int port = 0;
             //Setting up message to inform others of the new user
             if (NEW_USER == flag)
             {
-                //Getting RSA parts
-                std::string pubKey = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
-                std::string p = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
-                std::string q = Helper::getStringPartFromSocket(clientSocket, BIG_SIZE);
-                RSA rsa = RSA(std::stoll(p), std::stoll(q));
-                //Preparing AES key and encrypting it using RSA
-                AES aes = AES();
-                std::string key = aes.getKey();
-                longString encryptedKey;
-                for (int i = 0; i < HEX; i++)
-                {
-                    encryptedKey.push_back(key[i]);
-                }
-                encryptedKey = rsa.rsaMain(encryptedKey, std::stoll(pubKey));
-                for (int i = 0; i < HEX; i++)
-                {
-                    //Sending it to the user, letter by letter
-                    Helper::sendData(clientSocket, Helper::getPaddedNumber(encryptedKey[i], BIG_SIZE));
-                }
+                AES aes = AES(keyExchangeRecieving(clientSocket));
                 std::string port_str = Helper::getStringPartFromSocket(clientSocket, HEX);
                 port_str = aes.decrypt(port_str);
                 port = std::stoi(port_str);

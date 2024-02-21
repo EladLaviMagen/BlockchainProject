@@ -80,6 +80,7 @@ Transaction::Transaction(std::string str)
 	{
 		_signature.push_back(std::stoll(signature[i]));
 	}
+	t_id++;
 
 }
 
