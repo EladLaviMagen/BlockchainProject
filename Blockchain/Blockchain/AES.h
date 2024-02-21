@@ -16,6 +16,7 @@ public:
 	void setKey(std::string newKey);
 	std::string getKey();
 	void GKey();
+	static std::string trimString(std::string str);
 private:
 
     static const unsigned char sbox[HEX][HEX];

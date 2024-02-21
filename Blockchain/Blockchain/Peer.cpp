@@ -1,12 +1,15 @@
 #include "Peer.h"
 
-std::map<int, SOCKET> Peer::users;
+std::map<std::string, userInfo> Peer::users;
+std::string Peer::name;
+int Peer::port;
 WSADATA Peer::wsaData;
 
 int Peer::start()
 {
-    int port = 0;
-    std::string name = "Boss";
+    Peer::port = PORT;
+    Peer::name = "Boss";
+    userInfo info;
     if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) {
         std::cerr << "WSAStartup failed\n";
         return 1;
@@ -42,7 +45,11 @@ int Peer::start()
             throw std::exception();
         }
         //Setting position in map
-        Peer::users[PORT] = clientSocket;
+        
+        info.port = PORT;
+        info.socket = clientSocket;
+        Peer::users[Peer::name] = info;
+        
         std::cout << "Connected to " << PORT << "\n";
 
         //Client establishes his own port for others to approach him, he sends it to the person he connected to for him to inform the others
@@ -52,11 +59,14 @@ int Peer::start()
             std::cout << "Enter port : ";
             std::getline(std::cin, port_str);
         }
-        port = std::stoi(port_str);
+        std::cout << "Username : ";
+        std::getline(std::cin, Peer::name);
+        Peer::port = std::stoi(port_str);
         
         AES aes = AES(keyExchangeEntering(clientSocket));
-       
-        Helper::sendData(clientSocket, aes.encrypt(port_str));
+        std::string sentName = aes.encrypt(name);
+        std::string len = Helper::getPaddedNumber(sentName.length(), 5);
+        Helper::sendData(clientSocket, aes.encrypt(port_str+'\n'+len)+ sentName);
         //Calling threads to handle messages and connections of other users
         std::thread t(Peer::recieveMessageAndHandle, clientSocket);
         t.detach();
@@ -77,18 +87,14 @@ int Peer::start()
 
         }
         std::getline(std::cin, input);
+        
         if (input[0] == '/')
         {
-            int finalIndex = 1;
-            while (input[finalIndex] != '/')
+            std::vector<std::string> msg = FileManager::splitString(input, '/');
+            input = Peer::name + " --> " + msg[2];
+            if (Peer::users.find(msg[1]) != Peer::users.end())
             {
-                finalIndex++;
-            }
-            int userPort = std::atoi(input.substr(1, finalIndex - 1).c_str());
-            input = std::to_string(userPort) + " --> " + input.substr(finalIndex + 1, input.length() - 1);
-            if (Peer::users.find(userPort) != Peer::users.end())
-            {
-                Helper::sendData(Peer::users[userPort], Helper::getPaddedNumber(input.length(), 5) + input);
+                Helper::sendData(Peer::users[msg[1]].socket, Helper::getPaddedNumber(input.length(), 5) + input);
             }
 
         }
@@ -96,7 +102,11 @@ int Peer::start()
         {
             for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
             {
-                Helper::sendData(it->second, Helper::getPaddedNumber(input.length(), 5) + input);
+                if (input != "exit")
+                {
+                    input = Peer::name + " : " + input;
+                }
+                Helper::sendData(it->second.socket, Helper::getPaddedNumber(input.length(), 5) + input);
             }
         }
 
@@ -106,7 +116,7 @@ int Peer::start()
     {
         for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
         {
-            closesocket(it->second);
+            closesocket(it->second.socket);
         }
     }
     // Handle communication with connected peer
@@ -186,6 +196,9 @@ std::string Peer::keyExchangeEntering(SOCKET clientSocket)
 
 void Peer::sendDetails(SOCKET clientSocket)
 {
+    std::string details = Helper::getPaddedNumber(port, 5);
+    details += '/' + Peer::name;
+    Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(details.length(), 5) + details);
 }
 
 
@@ -201,7 +214,6 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
     {
         while (true)
         {
-            int port = 0;
             //Getting length of message
             int length = Helper::getIntPartFromSocket(sc, 5);
             //Getting the rest of the message
@@ -211,34 +223,34 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
             {
                 //This is the handling of a special message, the special message is a new user that has connected
                 //Getting the port of the new user (it's indexes in the message)
-                int finalIndex = 6;
-                while (msg[finalIndex] != ' ')
-                {
-                    finalIndex++;
-                }
+                std::vector<std::string> details = FileManager::splitString(msg, '\t');
                 //New communication socket
                 SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
                 if (clientSocket == INVALID_SOCKET) {
                     std::cerr << "Error creating socket\n";
-                    WSACleanup();
+                    //WSACleanup();
                 }
 
                 sockaddr_in serverAddr;
                 serverAddr.sin_family = AF_INET;
                 serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
                 //Setting port
-                serverAddr.sin_port = htons(std::atoi(msg.substr(6, finalIndex - 1).c_str()));
+                serverAddr.sin_port = htons(std::stoi(details[1]));
 
                 //Connecting
                 if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
                     int error = WSAGetLastError();
                     std::cerr << "Connection failed with error: " << error << "\n";
                     closesocket(clientSocket);
-                    WSACleanup();
+                    //WSACleanup();
                 }
-                Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(port, 5));
+                sendDetails(clientSocket);
+                
                 //Assigning position in map
-                users[std::atoi(msg.substr(6, finalIndex - 1).c_str())] = clientSocket;
+                userInfo info;
+                info.port = std::stoi(details[1]);
+                info.socket = clientSocket;
+                users[details[1]] = info;
                 std::thread t(recieveMessageAndHandle, clientSocket);
                 t.detach();
             }
@@ -246,7 +258,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
             {
                 for (auto it = users.begin(); it != users.end(); it++)
                 {
-                    if (it->second == sc)
+                    if (it->second.socket == sc)
                     {
                         std::cout << "User " << it->first << " disconnected\n";
                         users.erase(it->first);
@@ -265,7 +277,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
 
         for (auto it = users.begin(); it != users.end(); it++)
         {
-            if (it->second == sc)
+            if (it->second.socket == sc)
             {
                 std::cout << "User " << it->first << " disconnected\n";
                 users.erase(it->first);
@@ -321,38 +333,49 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
             SOCKET clientSocket = accept(listenSocket, (struct sockaddr*)&clientAddr, &addrLen);
             if (clientSocket == INVALID_SOCKET) {
                 std::cerr << "Accept failed\n";
-                closesocket(listenSocket);
-                WSACleanup();
+                //closesocket(listenSocket);
+                //WSACleanup();
             }
             //Getting his details
             std::string flag = Helper::getStringPartFromSocket(clientSocket, 1);
-            int port = 0;
+            std::string name = "";
+            userInfo info;
+            info.socket = clientSocket;
             //Setting up message to inform others of the new user
             if (NEW_USER == flag)
             {
+                int port = 0;
                 AES aes = AES(keyExchangeRecieving(clientSocket));
-                std::string port_str = Helper::getStringPartFromSocket(clientSocket, HEX);
-                port_str = aes.decrypt(port_str);
-                port = std::stoi(port_str);
-                std::string enterMsg = "\nUser " + std::to_string(port) + " Entered\n";
+                std::string details_str = Helper::getStringPartFromSocket(clientSocket, HEX);
+                details_str = aes.decrypt(details_str);
+                std::vector<std::string> details = FileManager::splitString(details_str, '\n');
+                port = std::stoi(details[0]);
+                name = Helper::getStringPartFromSocket(clientSocket, std::stoi(details[1]));
+                name = aes.decrypt(name);
+                name = AES::trimString(name);
+                std::string enterMsg = "\n" + name + '\t' + std::to_string(port) + '\t' + "Entered\n";
                 std::cout << enterMsg;
+                info.port = port;
                 //Sending it to all other users
                 if (!users.empty())
                 {
                     enterMsg = Helper::getPaddedNumber(enterMsg.length(), 5) + enterMsg;
                     for (auto it = users.begin(); it != users.end(); it++)
                     {
-                        Helper::sendData(it->second, enterMsg);
+                        Helper::sendData(it->second.socket, enterMsg);
                     }
                 }
             }
             else
             {
-                port = Helper::getIntPartFromSocket(clientSocket, 5);
+                int length = Helper::getIntPartFromSocket(clientSocket, 5);
+                std::string msg = Helper::getStringPartFromSocket(clientSocket, length);
+                std::vector<std::string> details = FileManager::splitString(msg, '/');
+                info.port = std::stoi(details[0]);
+                name = details[1];
             }
-
             //Adding new user to the map
-            users[port] = clientSocket;
+            users[name] = info;
             //Listening to messages from him
             std::thread t(recieveMessageAndHandle, clientSocket);
             t.detach();

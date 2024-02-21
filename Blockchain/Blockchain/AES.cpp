@@ -507,3 +507,18 @@ void AES::GKey()
         }
     }
 }
+
+std::string AES::trimString(std::string str)
+{
+    std::string ret = "";
+    if (str != "")
+    {
+        int i = 0;
+        while(str[i] != '\0')
+        {
+            ret += str[i];
+            i++;
+        }
+    }
+    return ret;
+}

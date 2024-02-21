@@ -13,6 +13,7 @@
 #include <map>
 #include <exception>
 #include "Requests.h"
+#include "FileManager.h"
 #pragma comment(lib, "ws2_32.lib")
 #pragma warning(disable: 4996)
 
@@ -26,13 +27,16 @@
 class Peer
 {
 public:
-	static std::map<int, SOCKET> users;
+	
 	
 	//Declarations
 	static void recieveMessageAndHandle(SOCKET sc);
 	static void connectMoreUsers(SOCKET listenSocket, int port);
 	static int start();
 private:
+	static std::map<std::string, userInfo> users;
+	static std::string name;
+	static int port;
 	static WSADATA wsaData;
 	static bool checkPort(std::string port);
 	static bool checkNum(std::string num);
