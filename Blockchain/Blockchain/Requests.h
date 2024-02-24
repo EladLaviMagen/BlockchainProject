@@ -6,6 +6,9 @@ struct userInfo
 {
 	SOCKET socket;
 	int port;
+	long long e;
+	long long p;
+	long long q;
 };
 
 #define PULSE 100

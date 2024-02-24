@@ -1,16 +1,17 @@
 #include "Peer.h"
 
 std::map<std::string, userInfo> Peer::users;
+userInfo Peer::user;
 std::string Peer::name;
-int Peer::port;
 WSADATA Peer::wsaData;
 
 int Peer::start()
 {
-    Peer::port = PORT;
+    Peer::user.port = PORT;
     Peer::name = "Boss";
     userInfo info;
-    if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) {
+    if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) 
+    {
         std::cerr << "WSAStartup failed\n";
         return 1;
     }
@@ -37,7 +38,8 @@ int Peer::start()
         serverAddr.sin_port = htons(PORT);
 
         //Connecting
-        if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) 
+        {
             //int error = WSAGetLastError();
             //std::cerr << "Connection failed with error: " << error << "\n";
             closesocket(clientSocket);
@@ -59,9 +61,46 @@ int Peer::start()
             std::cout << "Enter port : ";
             std::getline(std::cin, port_str);
         }
-        std::cout << "Username : ";
-        std::getline(std::cin, Peer::name);
-        Peer::port = std::stoi(port_str);
+        bool userFlag = false;
+        std::pair<big, RSA> rsa;
+        while (!userFlag)
+        {
+            userFlag = true;
+            std::cout << "Username : ";
+            std::getline(std::cin, Peer::name);
+            for (int i = 0; i < name.length(); i++)
+            {
+                if (name[i] == '/')
+                {
+                    userFlag = false;
+                    std::cout << "No '/' in usernames!\n";
+                }
+            }
+            if (userFlag)
+            {
+                rsa = FileManager::loadRSA(name);
+                if (rsa.first == -1)
+                {
+                    std::cout << "Such a user does not exist, are you creating a new user? Enter y/Y for yes, anything else for no\n";
+                    std::string ver = "";
+                    std::getline(std::cin, ver);
+                    if (ver == "y" || ver == "Y")
+                    {
+                        userFlag = false;
+                        std::cout << "Please re-enter username, as for user was not found\n";
+                    }
+                    else
+                    {
+                        rsa.second = RSA();
+                        rsa.first = rsa.second.generatePublic();
+                        FileManager::saveRSA(name, rsa.first, rsa.second);
+                    }
+                }
+            }
+            
+
+        }
+        Peer::user.port = std::stoi(port_str);
         
         AES aes = AES(keyExchangeEntering(clientSocket));
         std::string sentName = aes.encrypt(name);
@@ -70,11 +109,27 @@ int Peer::start()
         //Calling threads to handle messages and connections of other users
         std::thread t(Peer::recieveMessageAndHandle, clientSocket);
         t.detach();
-        std::thread t1(Peer::connectMoreUsers, listenSocket, port);
+        std::thread t1(Peer::connectMoreUsers, listenSocket, user.port);
         t1.detach();
     }
     catch(std::exception e)
     {
+        std::pair<big, RSA> rsa = FileManager::loadRSA(Peer::name);
+        if (rsa.first == -1)
+        {
+            RSA temp = RSA();
+
+            Peer::user.e = temp.generatePublic();
+            Peer::user.p = temp.getP();
+            Peer::user.q = temp.getQ();
+            FileManager::saveRSA(Peer::name, user.e, temp);
+        }
+        else 
+        {
+            Peer::user.e = rsa.first;
+            Peer::user.p = rsa.second.getP();
+            Peer::user.q = rsa.second.getQ();
+        }
         //Starting listening for users
         std::thread t(Peer::connectMoreUsers, listenSocket, PORT);
         t.detach();
@@ -173,8 +228,8 @@ std::string Peer::keyExchangeRecieving(SOCKET clientSocket)
 
 std::string Peer::keyExchangeEntering(SOCKET clientSocket)
 {
-    RSA rsa = RSA();
-    big e = rsa.generatePublic();
+    RSA rsa = RSA(user.p, user.q);
+    big e = user.e;
     Helper::sendData(clientSocket, "a" + Helper::getPaddedNumber(e, BIG_SIZE));
     Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getP(), BIG_SIZE));
     Helper::sendData(clientSocket, Helper::getPaddedNumber(rsa.getQ(), BIG_SIZE));
@@ -196,7 +251,7 @@ std::string Peer::keyExchangeEntering(SOCKET clientSocket)
 
 void Peer::sendDetails(SOCKET clientSocket)
 {
-    std::string details = Helper::getPaddedNumber(port, 5);
+    std::string details = Helper::getPaddedNumber(user.port, 5);
     details += '/' + Peer::name;
     Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(details.length(), 5) + details);
 }

@@ -24,6 +24,8 @@
 #define CONNECTING "b"
 #define PORT_SIZE 5
 #define BIG_SIZE 15
+
+
 class Peer
 {
 public:
@@ -35,8 +37,8 @@ public:
 	static int start();
 private:
 	static std::map<std::string, userInfo> users;
+	static userInfo user;
 	static std::string name;
-	static int port;
 	static WSADATA wsaData;
 	static bool checkPort(std::string port);
 	static bool checkNum(std::string num);
