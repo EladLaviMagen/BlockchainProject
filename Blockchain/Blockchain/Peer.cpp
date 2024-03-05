@@ -101,7 +101,9 @@ int Peer::start()
 
         }
         Peer::user.port = std::stoi(port_str);
-        
+        Peer::user.e = rsa.first;
+        Peer::user.p = rsa.second.getP();
+        Peer::user.q = rsa.second.getQ();
         AES aes = AES(keyExchangeEntering(clientSocket));
         std::string sentName = aes.encrypt(name);
         std::string len = Helper::getPaddedNumber(sentName.length(), 5);

@@ -3,7 +3,7 @@
 
 bool FileManager::saveRSA(std::string name, long long e, RSA cipher)
 {
-    std::ofstream file("C:/check/" + name + "RSA");
+    std::ofstream file("C:/check/" + name + "RSA.txt");
     if (!file.is_open())
     {
         // Print an error message if the file failed to open
@@ -19,7 +19,7 @@ std::pair<long long, RSA> FileManager::loadRSA(std::string name)
 {
     std::string str = "";
     std::string line = "";
-    std::fstream file("C:/check/" + name + "RSA");
+    std::fstream file("C:/check/" + name + "RSA.txt");
     if (!file.is_open())
     {
         // Print an error message if the file failed to open
