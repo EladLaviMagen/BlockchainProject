@@ -2,7 +2,8 @@
 
 Blockchain::Blockchain()
 {
-	cur_block = nullptr;
+	Header head = { 1.0, 0, std::time(0), ""};
+	cur_block = new Block(head, "0");
 }
 
 Blockchain::~Blockchain()

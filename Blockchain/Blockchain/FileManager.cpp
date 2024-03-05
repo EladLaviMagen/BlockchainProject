@@ -81,8 +81,7 @@ std::string FileManager::load(std::string path)
     // Check if the file was opened successfully
     if (!file.is_open())
     {
-        // Print an error message if the file failed to open
-        std::cerr << "Error: Unable to open file " << path << " for writing." << std::endl;
+        
         return "false"; // Return false to indicate failure
     }
     char delim = EOF;

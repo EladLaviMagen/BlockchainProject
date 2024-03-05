@@ -7,7 +7,7 @@
 #include "RSA.h"
 
 
-#define PATH "C:/check/save.txt"
+#define PATH "C:/check/"
 
 class FileManager
 {

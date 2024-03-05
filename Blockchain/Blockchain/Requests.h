@@ -1,9 +1,11 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "Blockchain.h"
 
 struct userInfo
 {
+	Blockchain chain;
 	SOCKET socket;
 	int port;
 	long long e;

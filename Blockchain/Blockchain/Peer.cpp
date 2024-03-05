@@ -10,6 +10,7 @@ int Peer::start()
     Peer::user.port = PORT;
     Peer::name = "Boss";
     userInfo info;
+    
     if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) 
     {
         std::cerr << "WSAStartup failed\n";
@@ -86,24 +87,26 @@ int Peer::start()
                     std::getline(std::cin, ver);
                     if (ver == "y" || ver == "Y")
                     {
-                        userFlag = false;
-                        std::cout << "Please re-enter username, as for user was not found\n";
-                    }
-                    else
-                    {
                         rsa.second = RSA();
                         rsa.first = rsa.second.generatePublic();
                         FileManager::saveRSA(name, rsa.first, rsa.second);
+                    }
+                    else
+                    {
+                        userFlag = false;
+                        std::cout << "Please re-enter username, as for user was not found\n";
                     }
                 }
             }
             
 
         }
+
         Peer::user.port = std::stoi(port_str);
         Peer::user.e = rsa.first;
         Peer::user.p = rsa.second.getP();
         Peer::user.q = rsa.second.getQ();
+
         AES aes = AES(keyExchangeEntering(clientSocket));
         std::string sentName = aes.encrypt(name);
         std::string len = Helper::getPaddedNumber(sentName.length(), 5);
@@ -116,6 +119,13 @@ int Peer::start()
     }
     catch(std::exception e)
     {
+        std::string chainStr = FileManager::load(PATH+name+"Save.txt");
+        if (chainStr != "false")
+        {
+            user.chain = Blockchain(chainStr);
+        }
+
+
         std::pair<big, RSA> rsa = FileManager::loadRSA(Peer::name);
         if (rsa.first == -1)
         {
