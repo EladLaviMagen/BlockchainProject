@@ -3,11 +3,16 @@
 #include <string>
 #include "Blockchain.h"
 
-struct userInfo
+struct netInfo
 {
-	Blockchain chain;
 	SOCKET socket;
 	int port;
+};
+
+struct userInfo
+{
+	Blockchain* chain;
+	netInfo net;
 	long long e;
 	long long p;
 	long long q;

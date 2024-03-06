@@ -11,8 +11,6 @@
 
 int main()
 {
-    Blockchain a;
-    std::cout << a.getCoinsOf("Elad");
     Peer::start();
     return 0;
 }

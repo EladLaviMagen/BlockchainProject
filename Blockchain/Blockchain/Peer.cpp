@@ -1,15 +1,15 @@
 #include "Peer.h"
 
-std::map<std::string, userInfo> Peer::users;
+std::map<std::string, netInfo> Peer::users;
 userInfo Peer::user;
 std::string Peer::name;
 WSADATA Peer::wsaData;
 
 int Peer::start()
 {
-    Peer::user.port = PORT;
+    Peer::user.net.port = PORT;
     Peer::name = "Boss";
-    userInfo info;
+    netInfo info;
     
     if (WSAStartup(MAKEWORD(2, 2), &Peer::wsaData) != 0) 
     {
@@ -102,7 +102,7 @@ int Peer::start()
 
         }
 
-        Peer::user.port = std::stoi(port_str);
+        Peer::user.net.port = std::stoi(port_str);
         Peer::user.e = rsa.first;
         Peer::user.p = rsa.second.getP();
         Peer::user.q = rsa.second.getQ();
@@ -111,10 +111,13 @@ int Peer::start()
         std::string sentName = aes.encrypt(name);
         std::string len = Helper::getPaddedNumber(sentName.length(), 5);
         Helper::sendData(clientSocket, aes.encrypt(port_str+'\n'+len)+ sentName);
+        int length = Helper::getIntPartFromSocket(clientSocket, 10);
+        user.chain = new Blockchain(Helper::getStringPartFromSocket(clientSocket, length));
+        FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
         //Calling threads to handle messages and connections of other users
         std::thread t(Peer::recieveMessageAndHandle, clientSocket);
         t.detach();
-        std::thread t1(Peer::connectMoreUsers, listenSocket, user.port);
+        std::thread t1(Peer::connectMoreUsers, listenSocket, user.net.port);
         t1.detach();
     }
     catch(std::exception e)
@@ -122,8 +125,17 @@ int Peer::start()
         std::string chainStr = FileManager::load(PATH+name+"Save.txt");
         if (chainStr != "false")
         {
-            user.chain = Blockchain(chainStr);
+            user.chain = new Blockchain(chainStr);
+           
         }
+        else
+        {
+            user.chain = new Blockchain();
+            FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+        }
+        
+        
+        
 
 
         std::pair<big, RSA> rsa = FileManager::loadRSA(Peer::name);
@@ -149,36 +161,56 @@ int Peer::start()
     std::string input = "";
     while (input != "exit")
     {
-        while (Peer::users.empty())
-        {
 
-        }
         std::getline(std::cin, input);
         
-        if (input[0] == '/')
+        try
         {
-            std::vector<std::string> msg = FileManager::splitString(input, '/');
-            input = Peer::name + " --> " + msg[2];
-            if (Peer::users.find(msg[1]) != Peer::users.end())
+            if (input[0] == '/')
             {
-                Helper::sendData(Peer::users[msg[1]].socket, Helper::getPaddedNumber(input.length(), 5) + input);
-            }
-
-        }
-        else
-        {
-            for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
-            {
-                if (input != "exit")
+                std::vector<std::string> msg = FileManager::splitString(input, '/');
+                input = Peer::name + " --> " + msg[2];
+                if (Peer::users.find(msg[1]) != Peer::users.end())
                 {
-                    input = Peer::name + " : " + input;
+                    Helper::sendData(Peer::users[msg[1]].socket, Helper::getPaddedNumber(input.length(), 5) + input);
                 }
-                Helper::sendData(it->second.socket, Helper::getPaddedNumber(input.length(), 5) + input);
+            }
+            else if (input[0] == '\\')
+            {
+                switch (input[1])
+                {
+                case 'm':
+                    std::vector<std::string> commandDetails = FileManager::splitString(input, ' ');
+                    std::cout << "User " << commandDetails[1] << " Has " << user.chain->getCoinsOf(commandDetails[1]) << " coins\n";
+                    break;
+                    
+                }
+            }
+            else
+            {
+                if (!Peer::users.empty())
+                {
+                    for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
+                    {
+                        if (input != "exit")
+                        {
+                            input = Peer::name + " : " + input;
+                        }
+                        Helper::sendData(it->second.socket, Helper::getPaddedNumber(input.length(), 5) + input);
+                    }
+                }
+                
             }
         }
+        catch (std::exception e)
+        {
+            std::cout << "There was an error with the input, please retry\n";
+        }
+        
 
 
     }
+
     if (Peer::users.begin() != Peer::users.end())
     {
         for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
@@ -263,7 +295,7 @@ std::string Peer::keyExchangeEntering(SOCKET clientSocket)
 
 void Peer::sendDetails(SOCKET clientSocket)
 {
-    std::string details = Helper::getPaddedNumber(user.port, 5);
+    std::string details = Helper::getPaddedNumber(user.net.port, 5);
     details += '/' + Peer::name;
     Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(details.length(), 5) + details);
 }
@@ -314,7 +346,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                 sendDetails(clientSocket);
                 
                 //Assigning position in map
-                userInfo info;
+                netInfo info;
                 info.port = std::stoi(details[1]);
                 info.socket = clientSocket;
                 users[details[1]] = info;
@@ -406,7 +438,7 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
             //Getting his details
             std::string flag = Helper::getStringPartFromSocket(clientSocket, 1);
             std::string name = "";
-            userInfo info;
+            netInfo info;
             info.socket = clientSocket;
             //Setting up message to inform others of the new user
             if (NEW_USER == flag)
@@ -422,6 +454,9 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 name = AES::trimString(name);
                 std::string enterMsg = "\n" + name + '\t' + std::to_string(port) + '\t' + "Entered\n";
                 std::cout << enterMsg;
+                std::string curChain = user.chain->toString();
+                curChain = Helper::getPaddedNumber(curChain.length(), 10) + curChain;
+                Helper::sendData(clientSocket, curChain);
                 info.port = port;
                 //Sending it to all other users
                 if (!users.empty())

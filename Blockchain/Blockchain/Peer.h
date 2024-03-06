@@ -36,7 +36,7 @@ public:
 	static void connectMoreUsers(SOCKET listenSocket, int port);
 	static int start();
 private:
-	static std::map<std::string, userInfo> users;
+	static std::map<std::string, netInfo> users;
 	static userInfo user;
 	static std::string name;
 	static WSADATA wsaData;
