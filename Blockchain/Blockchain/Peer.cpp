@@ -111,14 +111,26 @@ int Peer::start()
         std::string sentName = aes.encrypt(name);
         std::string len = Helper::getPaddedNumber(sentName.length(), 5);
         Helper::sendData(clientSocket, aes.encrypt(port_str+'\n'+len)+ sentName);
-        int length = Helper::getIntPartFromSocket(clientSocket, 10);
-        user.chain = new Blockchain(Helper::getStringPartFromSocket(clientSocket, length));
-        FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
-        //Calling threads to handle messages and connections of other users
-        std::thread t(Peer::recieveMessageAndHandle, clientSocket);
-        t.detach();
-        std::thread t1(Peer::connectMoreUsers, listenSocket, user.net.port);
-        t1.detach();
+        std::string check = Helper::getStringPartFromSocket(clientSocket, 3);
+        if (check == ACCEPTED)
+        {
+            int length = Helper::getIntPartFromSocket(clientSocket, 10);
+            user.chain = new Blockchain(Helper::getStringPartFromSocket(clientSocket, length));
+            FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+            //Calling threads to handle messages and connections of other users
+            std::thread t(Peer::recieveMessageAndHandle, clientSocket);
+            t.detach();
+            std::thread t1(Peer::connectMoreUsers, listenSocket, user.net.port);
+            t1.detach();
+        }
+        else
+        {
+            std::cout << "User already logged in!\n";
+            std::cout << "Press any key to exit\n";
+            getchar();
+            return 1;
+        }
+        
     }
     catch(std::exception e)
     {
@@ -177,29 +189,58 @@ int Peer::start()
             }
             else if (input[0] == '\\')
             {
+                std::vector<std::string> commandDetails = FileManager::splitString(input, ' ');
                 switch (input[1])
                 {
                 case 'm':
-                    std::vector<std::string> commandDetails = FileManager::splitString(input, ' ');
                     std::cout << "User " << commandDetails[1] << " Has " << user.chain->getCoinsOf(commandDetails[1]) << " coins\n";
                     break;
-                    
+                case 't':
+                    std::cout << "Are you sure that you want to transfer " << commandDetails[1] << " to " << commandDetails[2] << std::endl;
+                    std::cout << "Enter Y/y for yes and anything else for no : ";
+                    std::getline(std::cin, input);
+                    if (input == "Y" || input == "y")
+                    {
+                        if (user.chain->getCoinsOf(name) >= std::stof(commandDetails[1]) && std::stof(commandDetails[1]) > 0)
+                        {
+                            RSA cipher = RSA(user.p, user.q);
+                            big* enc = new big[3];
+                            enc[KEY] = cipher.modInverse(user.e);
+                            enc[RSA_P] = user.p;
+                            enc[RSA_Q] = user.q;
+                            Transaction* t = new Transaction(std::stoi(commandDetails[1]), name, commandDetails[2], enc);
+                            input = t->toString();
+                            input = Helper::getPaddedNumber(input.length(), 5) + input;
+                            sendToAllUsers(TRANSACTION, input);
+                            user.chain->addTransaction(t);
+                            FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                            delete[] enc;
+                        }
+                        else
+                        {
+                            std::cout << "You don't have coins for this transactions\n";
+                        }
+                        
+                    }
+                    break;
+                case 'h':
+                    user.chain->printHistory();
+                    break;
+                case 'c':
+                    user.chain->printCurTransactions();
+                    break;
+                   
+                default:
+                    std::cout << "Indentified command! Please retry!\n";
                 }
             }
             else
             {
-                if (!Peer::users.empty())
+                if (input != "exit")
                 {
-                    for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
-                    {
-                        if (input != "exit")
-                        {
-                            input = Peer::name + " : " + input;
-                        }
-                        Helper::sendData(it->second.socket, Helper::getPaddedNumber(input.length(), 5) + input);
-                    }
+                    input = Peer::name + " : " + input;
                 }
-                
+                sendToAllUsers(MSG, input);
             }
         }
         catch (std::exception e)
@@ -223,6 +264,24 @@ int Peer::start()
     closesocket(listenSocket);
     WSACleanup();
     return 0;
+}
+
+
+void Peer::sendToAllUsers(std::string code, std::string input)
+{
+    
+    if (input == "exit")
+    {
+        code = LOGOUT;
+    }
+    if (!Peer::users.empty())
+    {
+        for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
+        {
+            
+            Helper::sendData(it->second.socket, code + Helper::getPaddedNumber(input.length(), 5) + input);
+        }
+    }
 }
 
 bool Peer::checkPort(std::string port)
@@ -313,6 +372,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
     {
         while (true)
         {
+            std::string code = Helper::getStringPartFromSocket(sc, 3);
             //Getting length of message
             int length = Helper::getIntPartFromSocket(sc, 5);
             //Getting the rest of the message
@@ -353,7 +413,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                 std::thread t(recieveMessageAndHandle, clientSocket);
                 t.detach();
             }
-            else if (msg == "exit")
+            else if (code == LOGOUT)
             {
                 for (auto it = users.begin(); it != users.end(); it++)
                 {
@@ -366,6 +426,13 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                 }
                 closesocket(sc);
                 return;
+            }
+            else if (code == TRANSACTION)
+            {
+                Transaction* t = new Transaction(msg);
+                user.chain->addTransaction(t);
+                msg = t->getSender() + "sent " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
+                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
             }
             //Displaying message
             std::cout << msg << std::endl;
@@ -452,11 +519,24 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 name = Helper::getStringPartFromSocket(clientSocket, std::stoi(details[1]));
                 name = aes.decrypt(name);
                 name = AES::trimString(name);
+                if (!users.empty())
+                {
+                    for (auto it = users.begin(); it != users.end(); it++)
+                    {
+                        if (it->first == name)
+                        {
+                            Helper::sendData(clientSocket, DENIED);
+                            std::cout << "User already logged in!\n";
+                            throw(std::exception());
+                        }
+                        
+                    }
+                }
                 std::string enterMsg = "\n" + name + '\t' + std::to_string(port) + '\t' + "Entered\n";
                 std::cout << enterMsg;
                 std::string curChain = user.chain->toString();
                 curChain = Helper::getPaddedNumber(curChain.length(), 10) + curChain;
-                Helper::sendData(clientSocket, curChain);
+                Helper::sendData(clientSocket, ACCEPTED + curChain);
                 info.port = port;
                 //Sending it to all other users
                 if (!users.empty())

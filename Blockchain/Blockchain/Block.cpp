@@ -32,6 +32,14 @@ Block::Block(std::string str)
 	
 }
 
+void Block::printContents()
+{
+	for (int i = 0; i < _data.size(); i++)
+	{
+		std::cout << _data[i]->getSender() << " transferred " << _data[i]->getSum() << " to " << _data[i]->getRecv() << std::endl;
+	}
+}
+
 float Block::getCoins(std::string user)
 {
 	float sum = 0;

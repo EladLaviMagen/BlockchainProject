@@ -22,6 +22,29 @@ Blockchain::~Blockchain()
 	
 }
 
+void Blockchain::printHistory()
+{
+	if (!chain.empty())
+	{
+		for (auto it = chain.begin(); it != chain.end(); it++)
+		{
+			std::cout << "-----------------Block------------------" << std::endl;
+			it->second->printContents();
+			std::cout << "-----------------MINED------------------" << std::endl;
+
+		}
+	}
+}
+
+void Blockchain::printCurTransactions()
+{
+	if (cur_block != nullptr)
+	{
+		std::cout << "-----------------Block------------------" << std::endl;
+		cur_block->printContents();
+	}
+}
+
 std::string Blockchain::toString()
 {
 	std::string str = "";
@@ -60,7 +83,7 @@ Blockchain::Blockchain(std::string chainInfo)
 
 float Blockchain::getCoinsOf(std::string user)
 {
-	float sum = 0;
+	float sum = 50;
 	if (chain.begin() != chain.end())
 	{
 		for (auto it = chain.begin(); it != chain.end(); it++)
@@ -74,6 +97,11 @@ float Blockchain::getCoinsOf(std::string user)
 void Blockchain::update(std::string newData)
 {
 
+}
+
+void Blockchain::addTransaction(Transaction* tran)
+{
+	cur_block->addTransaction(tran);
 }
 
 bool Blockchain::addBlock(Block* newBlock, std::string prev)

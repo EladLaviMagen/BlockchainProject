@@ -2,6 +2,7 @@
 #include "RSA.h"
 #include "FileManager.h"
 
+
 #define DELIMETER '\n'
 #define SIG_DELIMETER '-'
 #define BADNUMBERS 0
@@ -17,6 +18,7 @@
 #define KEY 0
 #define RSA_P 1
 #define RSA_Q 2
+
 
 
 class Transaction

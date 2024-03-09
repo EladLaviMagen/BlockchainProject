@@ -40,6 +40,7 @@ private:
 	static userInfo user;
 	static std::string name;
 	static WSADATA wsaData;
+	static void sendToAllUsers(std::string code, std::string input);
 	static bool checkPort(std::string port);
 	static bool checkNum(std::string num);
 	static std::string keyExchangeRecieving(SOCKET clientSocket);
