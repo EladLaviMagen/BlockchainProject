@@ -192,7 +192,7 @@ int Peer::start()
                 std::vector<std::string> commandDetails = FileManager::splitString(input, ' ');
                 switch (input[1])
                 {
-                case 'm':
+                case 'g':
                     std::cout << "User " << commandDetails[1] << " Has " << user.chain->getCoinsOf(commandDetails[1]) << " coins\n";
                     break;
                 case 't':
@@ -229,7 +229,9 @@ int Peer::start()
                 case 'c':
                     user.chain->printCurTransactions();
                     break;
-                   
+                case 'm':
+                    //user.chain
+                    break;
                 default:
                     std::cout << "Indentified command! Please retry!\n";
                 }

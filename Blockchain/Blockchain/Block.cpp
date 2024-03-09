@@ -32,6 +32,12 @@ Block::Block(std::string str)
 	
 }
 
+void Block::changeNonce()
+{
+	std::srand(time(NULL));
+	_header.nonce = std::rand();
+}
+
 void Block::printContents()
 {
 	for (int i = 0; i < _data.size(); i++)
@@ -132,7 +138,14 @@ bool Block::mine()
 {
 	std::string rawData = append();
 	std::string hash = SHA256::conv(rawData);
-	//if()
-	return false;
+	for (int i = 0; i < std::stoi(_header.targetHash); i++)
+	{
+		if (hash[i] != '0');
+		{
+			return false;
+		}
+		
+	}
+	return true;
 }
 
