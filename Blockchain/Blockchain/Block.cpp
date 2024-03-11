@@ -4,8 +4,6 @@ Block::Block(Header head, std::string prev)
 {
 	_header = head;
 	_prevHash = prev;
-	
-	
 }
 
 Block::Block(std::string str)
@@ -61,6 +59,11 @@ float Block::getCoins(std::string user)
 		}
 	}
 	return sum;
+}
+
+int Block::getDifficulty()
+{
+	return std::stoi(_header.targetHash);
 }
 
 
@@ -142,9 +145,9 @@ bool Block::mine()
 	{
 		if (hash[i] != '0');
 		{
+			this->changeNonce();
 			return false;
 		}
-		
 	}
 	return true;
 }

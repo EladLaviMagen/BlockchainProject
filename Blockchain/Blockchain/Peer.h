@@ -9,8 +9,6 @@
 #include <thread>
 #include "Helper.h"
 #include "AES.h"
-#include "RSA.h"
-#include <map>
 #include <exception>
 #include "Requests.h"
 #include "FileManager.h"
@@ -25,7 +23,6 @@
 #define PORT_SIZE 5
 #define BIG_SIZE 15
 
-
 class Peer
 {
 public:
@@ -39,6 +36,7 @@ private:
 	static std::map<std::string, netInfo> users;
 	static userInfo user;
 	static std::string name;
+	static std::vector<Transaction*> queue;
 	static WSADATA wsaData;
 	static void sendToAllUsers(std::string code, std::string input);
 	static bool checkPort(std::string port);
@@ -46,6 +44,7 @@ private:
 	static std::string keyExchangeRecieving(SOCKET clientSocket);
 	static std::string keyExchangeEntering(SOCKET clientSocket);
 	static void sendDetails(SOCKET clientSocket);
+	static void mineCurBlock();
 
 
 };

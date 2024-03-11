@@ -1,8 +1,10 @@
 #include "Blockchain.h"
+bool Blockchain::mining = false;
 
+bool insta_mine = true;
 Blockchain::Blockchain()
 {
-	Header head = { 1.0, 0, std::time(0), ""};
+	Header head = { 1.0, 0, std::time(0), "1"};
 	cur_block = new Block(head, "0");
 }
 
@@ -96,21 +98,57 @@ float Blockchain::getCoinsOf(std::string user)
 
 void Blockchain::update(std::string newData)
 {
-
+	delete cur_block;
+	cur_block = new Block(newData);
 }
 
-void Blockchain::addTransaction(Transaction* tran)
+bool Blockchain::addTransaction(Transaction* tran)
 {
-	cur_block->addTransaction(tran);
+	return cur_block->addTransaction(tran);
 }
 
 bool Blockchain::addBlock(Block* newBlock, std::string prev)
 {
+	int difficulty = newBlock->getDifficulty();
+	if (!insta_mine)
+	{
+		for (int i = 0; i < difficulty; i++)
+		{
+			if (prev[i] != '0');
+			{
+				return false;
+			}
+		}
+	}
 	chain[prev] = newBlock;
 	return true;
 }
 
-void Blockchain::operator()()
+std::string Blockchain::mine(std::string name)
 {
-	cur_block->mine();
+	std::string rawData = cur_block->append();
+	std::string hash = SHA256::conv(rawData);
+	int difficulty = cur_block->getDifficulty();
+	if (!insta_mine)
+	{
+		for (int i = 0; i < difficulty; i++)
+		{
+			if (hash[i] != '0');
+			{
+				cur_block->changeNonce();
+				return "failed";
+			}
+		}
+	}
+	Block* newblock = new Block(rawData);
+	addBlock(newblock, hash);
+	Header head;
+	head.nonce = 0;
+	head.targetHash = "3";
+	head.timestamp = std::time(NULL);
+	head.version = 1.0;
+	cur_block = new Block(head, hash);
+	cur_block->addTransaction(new Transaction(50, "", name, longString()));
+	return rawData + CHAIN_DELIM + cur_block->append();
 }
+

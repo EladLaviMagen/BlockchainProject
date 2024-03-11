@@ -7,6 +7,7 @@ class Blockchain
 {
 
 public:
+	static bool mining;
 	Blockchain();
 	~Blockchain();
 	void printHistory();
@@ -15,9 +16,9 @@ public:
 	Blockchain(std::string chainInfo);
 	float getCoinsOf(std::string user);
 	void update(std::string newData);
-	void addTransaction(Transaction* tran);
+	bool addTransaction(Transaction* tran);
 	bool addBlock(Block* newBlock, std::string);
-	void operator()();
+	std::string mine(std::string name);
 	
 private:
 	std::map<std::string, Block*> chain;

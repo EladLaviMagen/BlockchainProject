@@ -31,6 +31,7 @@ public:
 	void changeNonce();
 	void printContents();
 	float getCoins(std::string user);
+	int getDifficulty();
 	~Block();
 	bool addTransaction(Transaction* transaction);
 	std::string append();

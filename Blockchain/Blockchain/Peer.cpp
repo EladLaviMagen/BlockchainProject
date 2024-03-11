@@ -1,6 +1,7 @@
 #include "Peer.h"
 
 std::map<std::string, netInfo> Peer::users;
+std::vector<Transaction*> Peer::queue;
 userInfo Peer::user;
 std::string Peer::name;
 WSADATA Peer::wsaData;
@@ -230,7 +231,20 @@ int Peer::start()
                     user.chain->printCurTransactions();
                     break;
                 case 'm':
-                    //user.chain
+                    Blockchain::mining = !Blockchain::mining;
+                    if (Blockchain::mining)
+                    {
+                        std::thread miner(mineCurBlock);
+                        miner.detach();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < queue.size(); i++)
+                        {
+                            user.chain->addTransaction(queue[i]);
+                        }
+                        Peer::queue.clear();
+                    }
                     break;
                 default:
                     std::cout << "Indentified command! Please retry!\n";
@@ -361,6 +375,27 @@ void Peer::sendDetails(SOCKET clientSocket)
     Helper::sendData(clientSocket, "b" + Helper::getPaddedNumber(details.length(), 5) + details);
 }
 
+void Peer::mineCurBlock()
+{
+
+    sendToAllUsers(MINE_START, "");
+    std::cout << "Mining started!" << std::endl;
+    while (Blockchain::mining)
+    {
+        std::string results = user.chain->mine(name);
+        if (results != "failed")
+        {
+            Blockchain::mining = false;
+            sendToAllUsers(NEWBLOCK, results);
+            std::cout << "Mining successful!" << std::endl;
+            FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+            return;
+        }
+    }
+    sendToAllUsers(MINE_CANCEL, "");
+    std::cout << "Mining cancalled!" << std::endl;
+}
+
 
 /*
 * Function will recieve a message and handle it accordingly
@@ -432,9 +467,26 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
             else if (code == TRANSACTION)
             {
                 Transaction* t = new Transaction(msg);
-                user.chain->addTransaction(t);
-                msg = t->getSender() + "sent " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
-                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                msg = t->getSender() + "wants to send " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
+                if (Blockchain::mining)
+                {
+                    std::cout << "NEW TRANSACTIONS - RESTART MINING TO INCLUDE THEM IN THIS BLOCK\n";
+                    queue.push_back(t);
+                }
+                else
+                {
+                    if (user.chain->addTransaction(t))
+                    {
+                        FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                    }
+                    else
+                    {
+                        std::cout << "BLOCK FULL - MINE IT TO START NEW BLOCK\n";
+                    }
+                    
+                }
+                
+                
             }
             //Displaying message
             std::cout << msg << std::endl;
