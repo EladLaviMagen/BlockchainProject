@@ -131,7 +131,7 @@ std::string Blockchain::mine(std::string name)
 	int difficulty = cur_block->getDifficulty();
 	if (!insta_mine)
 	{
-		for (int i = 0; i < difficulty; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			if (hash[i] != '0');
 			{
@@ -149,6 +149,6 @@ std::string Blockchain::mine(std::string name)
 	head.version = 1.0;
 	cur_block = new Block(head, hash);
 	cur_block->addTransaction(new Transaction(50, "", name, longString()));
-	return rawData + CHAIN_DELIM + cur_block->append();
+	return rawData + CHAIN_DELIM + hash + CHAIN_DELIM + cur_block->append();
 }
 

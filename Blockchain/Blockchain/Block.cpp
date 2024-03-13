@@ -1,5 +1,7 @@
 #include "Block.h"
 
+big Block::nonce_assist = 0;
+
 Block::Block(Header head, std::string prev)
 {
 	_header = head;
@@ -33,7 +35,8 @@ Block::Block(std::string str)
 void Block::changeNonce()
 {
 	std::srand(time(NULL));
-	_header.nonce = std::rand();
+	_header.nonce = std::rand() + nonce_assist;
+	nonce_assist++;
 }
 
 void Block::printContents()
@@ -149,6 +152,7 @@ bool Block::mine()
 			return false;
 		}
 	}
+	nonce_assist = 0;
 	return true;
 }
 

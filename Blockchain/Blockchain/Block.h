@@ -40,6 +40,7 @@ public:
 	std::string getPrev();
 
 private:
+	static big nonce_assist;
 	std::vector<Transaction*> _data;
 	Header _header;
 	std::string _prevHash;

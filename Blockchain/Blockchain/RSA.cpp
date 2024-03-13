@@ -69,7 +69,7 @@ big RSA::generatePublic()
     big randomNum = 0;
     do 
     {
-        randomNum = rand() % 122311313112;
+        randomNum = rand() % 1000000;
     } while (!checkPublic(randomNum));
     return randomNum;
 }

@@ -211,7 +211,6 @@ int Peer::start()
                             enc[RSA_Q] = user.q;
                             Transaction* t = new Transaction(std::stoi(commandDetails[1]), name, commandDetails[2], enc);
                             input = t->toString();
-                            input = Helper::getPaddedNumber(input.length(), 5) + input;
                             sendToAllUsers(TRANSACTION, input);
                             user.chain->addTransaction(t);
                             FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
@@ -243,6 +242,7 @@ int Peer::start()
                         {
                             user.chain->addTransaction(queue[i]);
                         }
+                        FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
                         Peer::queue.clear();
                     }
                     break;
@@ -282,6 +282,17 @@ int Peer::start()
     return 0;
 }
 
+
+std::string Peer::getNameOfUser(SOCKET sc)
+{
+    for (auto it = users.begin(); it != users.end(); it++)
+    {
+        if (it->second.socket == sc)
+        {
+            return it->first;
+        }
+    }
+}
 
 void Peer::sendToAllUsers(std::string code, std::string input)
 {
@@ -466,27 +477,68 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
             }
             else if (code == TRANSACTION)
             {
+                bool passed = false;;
                 Transaction* t = new Transaction(msg);
-                msg = t->getSender() + "wants to send " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
+                if (t->getSender() == getNameOfUser(sc))
+                {
+                    std::pair<long long, RSA> ciphers = FileManager::loadRSA(t->getSender());
+                    big* nums = new big[3];
+                    nums[RSA_P] = ciphers.second.getP();
+                    nums[RSA_Q] = ciphers.second.getQ();
+                    nums[KEY] = ciphers.first;
+                    if (t->verify(nums) == VERIFIED)
+                    {
+                        passed = true;
+                        msg = t->getSender() + " wants to send " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
+                        if (Blockchain::mining)
+                        {
+                            std::cout << "NEW TRANSACTIONS - RESTART MINING TO INCLUDE THEM IN THIS BLOCK\n";
+                            queue.push_back(t);
+                        }
+                        else
+                        {
+                            if (user.chain->addTransaction(t))
+                            {
+                                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                            }
+                            else
+                            {
+                                std::cout << "BLOCK FULL - MINE IT TO START NEW BLOCK\n";
+                            }
+
+                        }
+                    }
+                }
+                if (!passed)
+                {
+                    delete t;
+                    msg = "UNAUTHORIZED TRANSACTION DETECTED, NOT INSERTED INTO CHAIN";
+                }
+               
+                
+                
+            }
+            else if (code == NEWBLOCK)
+            {
                 if (Blockchain::mining)
                 {
-                    std::cout << "NEW TRANSACTIONS - RESTART MINING TO INCLUDE THEM IN THIS BLOCK\n";
-                    queue.push_back(t);
+                    Blockchain::mining = false;
                 }
-                else
-                {
-                    if (user.chain->addTransaction(t))
-                    {
-                        FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
-                    }
-                    else
-                    {
-                        std::cout << "BLOCK FULL - MINE IT TO START NEW BLOCK\n";
-                    }
-                    
-                }
+                std::vector<std::string> mineData = FileManager::splitString(msg, CHAIN_DELIM);
+                Block* newBlock = new Block(mineData[0]);
+                user.chain->addBlock(newBlock, mineData[1]);
+                user.chain->update(mineData[2]);
+                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                msg = "Block was mined!\n";
                 
-                
+            }
+            else if (code == MINE_START)
+            {
+                std::cout << getNameOfUser(sc) << " started mining\n";
+            }
+            else if (code == MINE_CANCEL)
+            {
+                std::cout << getNameOfUser(sc) << " stopped mining\n";
             }
             //Displaying message
             std::cout << msg << std::endl;
@@ -573,6 +625,12 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 name = Helper::getStringPartFromSocket(clientSocket, std::stoi(details[1]));
                 name = aes.decrypt(name);
                 name = AES::trimString(name);
+                if (name == Peer::name)
+                {
+                    Helper::sendData(clientSocket, DENIED);
+                    std::cout << "User already logged in!\n";
+                    throw(std::exception());
+                }
                 if (!users.empty())
                 {
                     for (auto it = users.begin(); it != users.end(); it++)
@@ -582,9 +640,9 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                             Helper::sendData(clientSocket, DENIED);
                             std::cout << "User already logged in!\n";
                             throw(std::exception());
-                        }
-                        
+                        } 
                     }
+                    
                 }
                 std::string enterMsg = "\n" + name + '\t' + std::to_string(port) + '\t' + "Entered\n";
                 std::cout << enterMsg;

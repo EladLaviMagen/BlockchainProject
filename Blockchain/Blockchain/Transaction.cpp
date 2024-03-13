@@ -28,15 +28,15 @@ Transaction::Transaction(float sum, std::string sender, std::string reciever, lo
 
 
 
-int Transaction::verify(Transaction t, big* dec)
+int Transaction::verify(big* dec)
 {
 	RSA cipher = RSA();
 	if (!cipher.setQandP(dec[RSA_Q], dec[RSA_P]))
 	{
 		return BADNUMBERS;
 	}
-	longString signature = t._signature;
-	longString base = t.getBaseSignature();
+	longString signature = this->_signature;
+	longString base = this->getBaseSignature();
 	signature = cipher.rsaMain(signature, dec[KEY]);
 	if (signature.size() != base.size())
 	{

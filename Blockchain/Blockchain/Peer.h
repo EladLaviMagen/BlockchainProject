@@ -38,6 +38,7 @@ private:
 	static std::string name;
 	static std::vector<Transaction*> queue;
 	static WSADATA wsaData;
+	static std::string getNameOfUser(SOCKET sc);
 	static void sendToAllUsers(std::string code, std::string input);
 	static bool checkPort(std::string port);
 	static bool checkNum(std::string num);

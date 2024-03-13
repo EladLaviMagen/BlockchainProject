@@ -28,7 +28,7 @@ public:
 	Transaction(float sum, std::string sender, std::string reciever, big* enc);
 	Transaction(float sum, std::string sender, std::string reciever, longString sig);
 	Transaction(std::string str);
-	static int verify(Transaction t, big* dec);
+	int verify(big* dec);
 	std::string getRecv();
 	std::string getSender();
 	float getSum();
