@@ -1,7 +1,7 @@
 #include "Blockchain.h"
 bool Blockchain::mining = false;
 
-bool insta_mine = true;
+bool insta_mine = false;
 Blockchain::Blockchain()
 {
 	Header head = { 1.0, 0, std::time(0), "1"};
@@ -131,7 +131,7 @@ std::string Blockchain::mine(std::string name)
 	int difficulty = cur_block->getDifficulty();
 	if (!insta_mine)
 	{
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < difficulty; i++)
 		{
 			if (hash[i] != '0');
 			{
