@@ -4,7 +4,7 @@ bool Blockchain::mining = false;
 bool insta_mine = false;
 Blockchain::Blockchain()
 {
-	Header head = { 1.0, 0, std::time(0), "1"};
+	Header head = { 1.0, 0, std::time(0), "3"};
 	cur_block = new Block(head, "0");
 }
 
@@ -26,16 +26,15 @@ Blockchain::~Blockchain()
 
 void Blockchain::printHistory()
 {
-	if (!chain.empty())
+	std::string prev = cur_block->getPrev();
+	std::string print = "";
+	while (prev != GENESIS)
 	{
-		for (auto it = chain.begin(); it != chain.end(); it++)
-		{
-			std::cout << "-----------------Block------------------" << std::endl;
-			it->second->printContents();
-			std::cout << "-----------------MINED------------------" << std::endl;
-
-		}
+		print = "-----------------Block------------------\n" + chain[prev]->getContents() + "-----------------MINED------------------\n" + print;
+		prev = chain[prev]->getPrev();
 	}
+	std::cout << print;
+	
 }
 
 void Blockchain::printCurTransactions()
@@ -43,21 +42,45 @@ void Blockchain::printCurTransactions()
 	if (cur_block != nullptr)
 	{
 		std::cout << "-----------------Block------------------" << std::endl;
-		cur_block->printContents();
+		std::cout << cur_block->getContents();
 	}
+}
+
+bool Blockchain::verifiy()
+{
+	int count = 0;
+	std::string prev = cur_block->getPrev();
+	while (prev != GENESIS)
+	{
+		std::string hash = SHA256::conv(chain[prev]->append());
+		if (prev != hash)
+		{
+			return false;
+		}
+		prev = chain[prev]->getPrev();
+	}
+	return true;
+	
 }
 
 std::string Blockchain::toString()
 {
 	std::string str = "";
-	for (auto it = chain.begin(); it != chain.end(); it++)
+	std::string prev = cur_block->getPrev();
+	str = cur_block->append();
+	while (prev != GENESIS)
+	{
+		str = chain[prev]->append() + CHAIN_DELIM + str;
+		prev = chain[prev]->getPrev();
+	}
+	/*for (auto it = chain.begin(); it != chain.end(); it++)
 	{
 		str += (it->second)->append() + CHAIN_DELIM;
 	}
 	if (cur_block != nullptr)
 	{
 		str += cur_block->append();
-	}
+	}*/
 	return str;
 }
 
@@ -74,8 +97,8 @@ Blockchain::Blockchain(std::string chainInfo)
 	{
 		for (int i = 0; i < blocks.size() - 1; i++)
 		{
-			Block* prev = new Block(blocks[i]);
 			cur_block = new Block(blocks[i + 1]);
+			Block* prev = new Block(blocks[i]);
 			chain[cur_block->getPrev()] = prev;
 		}
 	}
@@ -114,7 +137,7 @@ bool Blockchain::addBlock(Block* newBlock, std::string prev)
 	{
 		for (int i = 0; i < difficulty; i++)
 		{
-			if (prev[i] != '0');
+			if (prev[i] != '0')
 			{
 				return false;
 			}
@@ -133,15 +156,14 @@ std::string Blockchain::mine(std::string name)
 	{
 		for (int i = 0; i < difficulty; i++)
 		{
-			if (hash[i] != '0');
+			if (hash[i] != '0')
 			{
 				cur_block->changeNonce();
 				return "failed";
 			}
 		}
 	}
-	Block* newblock = new Block(rawData);
-	addBlock(newblock, hash);
+	addBlock(cur_block, hash);
 	Header head;
 	head.nonce = 0;
 	head.targetHash = "3";

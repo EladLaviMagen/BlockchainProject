@@ -5,6 +5,7 @@ std::vector<Transaction*> Peer::queue;
 userInfo Peer::user;
 std::string Peer::name;
 WSADATA Peer::wsaData;
+std::mutex Peer::lock_users;
 
 int Peer::start()
 {
@@ -148,7 +149,7 @@ int Peer::start()
         }
         
         
-        
+        std::cout << user.chain->verifiy() << std::endl;
 
 
         std::pair<big, RSA> rsa = FileManager::loadRSA(Peer::name);
@@ -204,18 +205,22 @@ int Peer::start()
                     {
                         if (user.chain->getCoinsOf(name) >= std::stof(commandDetails[1]) && std::stof(commandDetails[1]) > 0)
                         {
-                            RSA cipher = RSA(user.p, user.q);
-                            big* enc = new big[3];
-                            enc[KEY] = cipher.modInverse(user.e);
-                            enc[RSA_P] = user.p;
-                            enc[RSA_Q] = user.q;
-                            Transaction* t = new Transaction(std::stoi(commandDetails[1]), name, commandDetails[2], enc);
-                            input = t->toString();
-                            sendToAllUsers(TRANSACTION, input);
-                            user.chain->addTransaction(t);
-                            FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
-                            delete[] enc;
-                        }
+                            if (commandDetails[2] != name)
+                            {
+                                RSA cipher = RSA(user.p, user.q);
+                                big* enc = new big[3];
+                                enc[KEY] = cipher.modInverse(user.e);
+                                enc[RSA_P] = user.p;
+                                enc[RSA_Q] = user.q;
+                                Transaction* t = new Transaction(std::stoi(commandDetails[1]), name, commandDetails[2], enc);
+                                input = t->toString();
+                                sendToAllUsers(TRANSACTION, input);
+                                user.chain->addTransaction(t);
+                                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                                delete[] enc;
+                            }
+                            }
+                            
                         else
                         {
                             std::cout << "You don't have coins for this transactions\n";
@@ -228,6 +233,15 @@ int Peer::start()
                     break;
                 case 'c':
                     user.chain->printCurTransactions();
+                    break;
+                case 's':
+                    if (!users.empty())
+                    {
+                        for (auto it = users.begin(); it != users.end(); it++)
+                        {
+                            std::cout << "- " << it->first << std::endl;
+                        }
+                    }
                     break;
                 case 'm':
                     Blockchain::mining = !Blockchain::mining;
@@ -270,6 +284,7 @@ int Peer::start()
 
     if (Peer::users.begin() != Peer::users.end())
     {
+        std::lock_guard<std::mutex> lock(Peer::lock_users);
         for (auto it = Peer::users.begin(); it != Peer::users.end(); it++)
         {
             closesocket(it->second.socket);
@@ -285,6 +300,7 @@ int Peer::start()
 
 std::string Peer::getNameOfUser(SOCKET sc)
 {
+    std::lock_guard<std::mutex> lock(Peer::lock_users);
     for (auto it = users.begin(); it != users.end(); it++)
     {
         if (it->second.socket == sc)
@@ -296,7 +312,7 @@ std::string Peer::getNameOfUser(SOCKET sc)
 
 void Peer::sendToAllUsers(std::string code, std::string input)
 {
-    
+    std::lock_guard<std::mutex> lock(Peer::lock_users);
     if (input == "exit")
     {
         code = LOGOUT;
@@ -481,33 +497,37 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                 Transaction* t = new Transaction(msg);
                 if (t->getSender() == getNameOfUser(sc))
                 {
-                    std::pair<long long, RSA> ciphers = FileManager::loadRSA(t->getSender());
-                    big* nums = new big[3];
-                    nums[RSA_P] = ciphers.second.getP();
-                    nums[RSA_Q] = ciphers.second.getQ();
-                    nums[KEY] = ciphers.first;
-                    if (t->verify(nums) == VERIFIED)
+                    if (t->getSender() != t->getRecv())
                     {
-                        passed = true;
-                        msg = t->getSender() + " wants to send " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
-                        if (Blockchain::mining)
+                        std::pair<long long, RSA> ciphers = FileManager::loadRSA(t->getSender());
+                        big* nums = new big[3];
+                        nums[RSA_P] = ciphers.second.getP();
+                        nums[RSA_Q] = ciphers.second.getQ();
+                        nums[KEY] = ciphers.first;
+                        if (t->verify(nums) == VERIFIED)
                         {
-                            std::cout << "NEW TRANSACTIONS - RESTART MINING TO INCLUDE THEM IN THIS BLOCK\n";
-                            queue.push_back(t);
-                        }
-                        else
-                        {
-                            if (user.chain->addTransaction(t))
+                            passed = true;
+                            msg = t->getSender() + " wants to send " + std::to_string(t->getSum()) + " coins to " + t->getRecv();
+                            if (Blockchain::mining)
                             {
-                                FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                                std::cout << "NEW TRANSACTIONS - RESTART MINING TO INCLUDE THEM IN THIS BLOCK\n";
+                                queue.push_back(t);
                             }
                             else
                             {
-                                std::cout << "BLOCK FULL - MINE IT TO START NEW BLOCK\n";
-                            }
+                                if (user.chain->addTransaction(t))
+                                {
+                                    FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
+                                }
+                                else
+                                {
+                                    std::cout << "BLOCK FULL - MINE IT TO START NEW BLOCK\n";
+                                }
 
+                            }
                         }
                     }
+                   
                 }
                 if (!passed)
                 {
@@ -546,7 +566,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
     }
     catch (std::exception ex)
     {
-
+        std::lock_guard<std::mutex> lock(lock_users);
         for (auto it = users.begin(); it != users.end(); it++)
         {
             if (it->second.socket == sc)
@@ -633,6 +653,7 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 }
                 if (!users.empty())
                 {
+                    std::lock_guard<std::mutex> lock(lock_users);
                     for (auto it = users.begin(); it != users.end(); it++)
                     {
                         if (it->first == name)
@@ -669,7 +690,10 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 name = details[1];
             }
             //Adding new user to the map
-            users[name] = info;
+            {
+                std::lock_guard<std::mutex> lock(lock_users);
+                users[name] = info;
+            }
             //Listening to messages from him
             std::thread t(recieveMessageAndHandle, clientSocket);
             t.detach();

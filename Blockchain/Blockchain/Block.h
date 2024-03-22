@@ -29,7 +29,7 @@ public:
 	Block(Header head, std::string prev);
 	Block(std::string str);
 	void changeNonce();
-	void printContents();
+	std::string getContents();
 	float getCoins(std::string user);
 	int getDifficulty();
 	~Block();

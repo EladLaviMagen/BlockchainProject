@@ -28,8 +28,6 @@ Block::Block(std::string str)
 			}
 		}
 	}
-	
-	
 }
 
 void Block::changeNonce()
@@ -39,12 +37,14 @@ void Block::changeNonce()
 	nonce_assist++;
 }
 
-void Block::printContents()
+std::string Block::getContents()
 {
+	std::string transactions = "";
 	for (int i = 0; i < _data.size(); i++)
 	{
-		std::cout << _data[i]->getSender() << " transferred " << _data[i]->getSum() << " to " << _data[i]->getRecv() << std::endl;
+		transactions += _data[i]->getSender() + " transferred " + std::to_string(_data[i]->getSum()) + " to " + _data[i]->getRecv() + "\n";
 	}
+	return transactions;
 }
 
 float Block::getCoins(std::string user)

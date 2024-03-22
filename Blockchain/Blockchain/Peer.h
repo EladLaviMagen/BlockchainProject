@@ -8,6 +8,7 @@
 #include <sstream>
 #include <thread>
 #include "Helper.h"
+#include <mutex>
 #include "AES.h"
 #include <exception>
 #include "Requests.h"
@@ -38,6 +39,8 @@ private:
 	static std::string name;
 	static std::vector<Transaction*> queue;
 	static WSADATA wsaData;
+	static std::mutex lock_users;
+
 	static std::string getNameOfUser(SOCKET sc);
 	static void sendToAllUsers(std::string code, std::string input);
 	static bool checkPort(std::string port);

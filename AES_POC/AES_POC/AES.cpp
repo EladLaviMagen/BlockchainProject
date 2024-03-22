@@ -94,6 +94,12 @@ void AES::setKey(std::string newKey)
     deallocateMatrixes(prepKey, size);
 }
 
+unsigned char** AES::setVector(std::string iv)
+{
+    unsigned char*** newVector = matrixAndPadString(iv);
+    return newVector[0];
+}
+
 AES::~AES()
 {
     deallocateMatrix(_key, SIZE);
@@ -128,6 +134,39 @@ std::string AES::decrypt(std::string input)
     std::string result = matrixesToString(states, size);
     return result;
 }
+
+std::string AES::encryptCBC(std::string input, unsigned char** iv)
+{
+    unsigned char*** states = matrixAndPadString(input);
+    int size = calcBlocks(input);
+    AddRoundKey(states[0], iv);
+    for (int i = 0; i < size; i++)
+    {
+        encryptBlock(states[i], _key);
+        if (i != size - 1)
+        {
+            AddRoundKey(states[i + 1], states[i]);
+        }
+    }
+    std::string result = matrixesToString(states, size);
+    return result;
+}
+
+std::string AES::decryptCBC(std::string input, unsigned char** iv)
+{
+    unsigned char*** states = matrixAndPadString(input);
+    int size = calcBlocks(input);
+    for (int i = size - 1; i > 0; i--)
+    {
+        decryptBlock(states[i], _key);
+        AddRoundKey(states[i], states[i - 1]);
+    }
+    decryptBlock(states[0], _key);
+    AddRoundKey(states[0], iv);
+    std::string result = matrixesToString(states, size);
+    return result;
+}
+
 int AES::calcBlocks(std::string input)
 {
     int size = input.length() / 16;
@@ -494,7 +533,21 @@ void AES::AddRoundKey(unsigned char** state, unsigned char** key)
     }
 }
 
-
+unsigned char** AES::InitilizeVector()
+{
+    std::srand(static_cast<unsigned int>(std::time(0)));
+    unsigned char** iv = allocateMatrix(SIZE);
+    for (unsigned int i = 0; i < SIZE; i++)
+    {
+        for (unsigned int j = 0; j < SIZE; j++)
+        {
+            
+            iv[j][i] = std::rand() % 127 + 1;
+            std::cout << std::hex << (int)iv[j][i] << ' ';
+        }
+    }
+    return iv;
+}
 void AES::GKey()
 {
     std::srand(static_cast<unsigned int>(std::time(0)));
@@ -502,7 +555,8 @@ void AES::GKey()
     {
         for (unsigned int j = 0; j < SIZE; j++)
         {
-            _key[i][j] = std::rand() % 255 + 1;
+            _key[j][i] = std::rand() % 127 + 1;
+            std::cout << std::hex << (int)_key[j][i] << ' ';
         }
     }
 }

@@ -3,6 +3,7 @@
 #include "Block.h"
 
 #define CHAIN_DELIM '\v'
+#define GENESIS "0"
 class Blockchain
 {
 
@@ -12,6 +13,7 @@ public:
 	~Blockchain();
 	void printHistory();
 	void printCurTransactions();
+	bool verifiy();
 	std::string toString();
 	Blockchain(std::string chainInfo);
 	float getCoinsOf(std::string user);

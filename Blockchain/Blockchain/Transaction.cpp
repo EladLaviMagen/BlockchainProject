@@ -71,14 +71,18 @@ float Transaction::getSum()
 Transaction::Transaction(std::string str)
 {
 	std::vector<std::string> info = FileManager::splitString(str, DELIMETER);
-	std::vector<std::string> signature = FileManager::splitString(info[info.size() - 1], SIG_DELIMETER);
+	
 	_id = std::stoi(info[ID]);
 	_sum = std::stof(info[SUM]);
 	_sender = info[SENDER];
 	_reciever = info[RECV];
-	for (int i = 0; i < signature.size(); i++)
+	if (info.size() == 5)
 	{
-		_signature.push_back(std::stoll(signature[i]));
+		std::vector<std::string> signature = FileManager::splitString(info[info.size() - 1], SIG_DELIMETER);
+		for (int i = 0; i < signature.size(); i++)
+		{
+			_signature.push_back(std::stoll(signature[i]));
+		}
 	}
 	t_id++;
 
