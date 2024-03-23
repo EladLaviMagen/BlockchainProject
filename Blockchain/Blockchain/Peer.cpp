@@ -118,6 +118,14 @@ int Peer::start()
         {
             int length = Helper::getIntPartFromSocket(clientSocket, 10);
             user.chain = new Blockchain(Helper::getStringPartFromSocket(clientSocket, length));
+            if (user.chain->verifiy())
+            {
+                std::cout << "Verified Blockchain" << std::endl;
+            }
+            else
+            {
+                std::cout << "illegal Blockchain" << std::endl;
+            }
             FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
             //Calling threads to handle messages and connections of other users
             std::thread t(Peer::recieveMessageAndHandle, clientSocket);
@@ -140,7 +148,6 @@ int Peer::start()
         if (chainStr != "false")
         {
             user.chain = new Blockchain(chainStr);
-           
         }
         else
         {
@@ -148,8 +155,15 @@ int Peer::start()
             FileManager::save(user.chain->toString(), PATH + name + "Save.txt");
         }
         
-        
-        std::cout << user.chain->verifiy() << std::endl;
+        if (user.chain->verifiy())
+        {
+            std::cout << "Verified Blockchain" << std::endl;
+        }
+        else
+        {
+            std::cout << "illegal Blockchain" << std::endl;
+        }
+       
 
 
         std::pair<big, RSA> rsa = FileManager::loadRSA(Peer::name);
@@ -194,6 +208,8 @@ int Peer::start()
                 std::vector<std::string> commandDetails = FileManager::splitString(input, ' ');
                 switch (input[1])
                 {
+                case 'l':
+                    std::cout << "Welcome! Commands are:\n\g USER to get a user's coins\n\\t SUM USER to make a transaction\n\h for chain History\n\c for current block details\n\s for list of users\n\m to start/stop mining\n";
                 case 'g':
                     std::cout << "User " << commandDetails[1] << " Has " << user.chain->getCoinsOf(commandDetails[1]) << " coins\n";
                     break;
@@ -404,9 +420,8 @@ void Peer::sendDetails(SOCKET clientSocket)
 
 void Peer::mineCurBlock()
 {
-
     sendToAllUsers(MINE_START, "");
-    std::cout << "Mining started!" << std::endl;
+    std::cout << "Mining started! Enter \m again to cancel" << std::endl;
     while (Blockchain::mining)
     {
         std::string results = user.chain->mine(name);
@@ -442,7 +457,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
             //Getting the rest of the message
             std::string msg = Helper::getStringPartFromSocket(sc, length);
             //Checking for special message 
-            if (msg[0] == '\n')
+            if (code == LOGIN)
             {
                 //This is the handling of a special message, the special message is a new user that has connected
                 //Getting the port of the new user (it's indexes in the message)
@@ -473,7 +488,7 @@ void Peer::recieveMessageAndHandle(SOCKET sc)
                 netInfo info;
                 info.port = std::stoi(details[1]);
                 info.socket = clientSocket;
-                users[details[1]] = info;
+                users[details[0]] = info;
                 std::thread t(recieveMessageAndHandle, clientSocket);
                 t.detach();
             }
@@ -665,7 +680,7 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                     }
                     
                 }
-                std::string enterMsg = "\n" + name + '\t' + std::to_string(port) + '\t' + "Entered\n";
+                std::string enterMsg = name + '\t' + std::to_string(port) + '\t' + "Entered\n";
                 std::cout << enterMsg;
                 std::string curChain = user.chain->toString();
                 curChain = Helper::getPaddedNumber(curChain.length(), 10) + curChain;
@@ -674,11 +689,7 @@ void Peer::connectMoreUsers(SOCKET listenSocket, int port)
                 //Sending it to all other users
                 if (!users.empty())
                 {
-                    enterMsg = Helper::getPaddedNumber(enterMsg.length(), 5) + enterMsg;
-                    for (auto it = users.begin(); it != users.end(); it++)
-                    {
-                        Helper::sendData(it->second.socket, enterMsg);
-                    }
+                    sendToAllUsers(LOGIN, enterMsg);
                 }
             }
             else
