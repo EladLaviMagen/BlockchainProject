@@ -210,6 +210,7 @@ int Peer::start()
                 {
                 case 'l':
                     std::cout << "Welcome! Commands are:\n\g USER to get a user's coins\n\\t SUM USER to make a transaction\n\h for chain History\n\c for current block details\n\s for list of users\n\m to start/stop mining\n";
+                    break;
                 case 'g':
                     std::cout << "User " << commandDetails[1] << " Has " << user.chain->getCoinsOf(commandDetails[1]) << " coins\n";
                     break;

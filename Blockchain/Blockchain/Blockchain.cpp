@@ -4,8 +4,8 @@ bool Blockchain::mining = false;
 bool insta_mine = false;
 Blockchain::Blockchain()
 {
-	Header head = { 1.0, 0, std::time(0), "5"};
-	cur_block = new Block(head, "0");
+	Header head = { 1.0, 0, std::time(0), "3"};
+	cur_block = new Block(head, GENESIS);
 }
 
 Blockchain::~Blockchain()
@@ -166,11 +166,11 @@ std::string Blockchain::mine(std::string name)
 	addBlock(cur_block, hash);
 	Header head;
 	head.nonce = 0;
-	head.targetHash = "5";
+	head.targetHash = "3";
 	head.timestamp = std::time(NULL);
 	head.version = 1.0;
 	cur_block = new Block(head, hash);
-	cur_block->addTransaction(new Transaction(50, "", name, longString()));
+	cur_block->addTransaction(new Transaction(chain[hash]->calcReward(), "", name, longString()));
 	return rawData + CHAIN_DELIM + hash + CHAIN_DELIM + cur_block->append();
 }
 

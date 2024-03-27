@@ -33,6 +33,7 @@ public:
 	float getCoins(std::string user);
 	int getDifficulty();
 	~Block();
+	float calcReward();
 	bool addTransaction(Transaction* transaction);
 	std::string append();
 	bool mine();
