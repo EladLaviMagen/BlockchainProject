@@ -13,10 +13,12 @@ class RSA
 public:
 	//declarations
 	RSA();
+	RSA(big p, big q);
 	big modInverse(big a);
 	big modInverse(big a, big m);
 	longString rsaMain(longString data, big k);
 	big modExp(big base, big exp, big mod);
+	
 	bool setQandP(big q, big p);
 	bool checkPublic(big e);
 	big generatePublic();
@@ -24,7 +26,8 @@ public:
 	big getQ();
 
 private:
-	
+	big modPow(big base, big exponent, big modulus);
+	bool isPrimeMiller(big n);
 	big generateRandomPrime();
 	bool isPrime(big num);
 	big _p;

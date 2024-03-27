@@ -7,15 +7,16 @@ int main()
     AES* cipher = new AES();
     std::string msg = "";
     std::getline(std::cin, msg);
+    unsigned char** iv = cipher->InitilizeVector();
     while (msg != "exit")
     {
-        msg = cipher->encrypt(msg);
+        msg = cipher->encryptCBC(msg, iv);
         for (int i = 0; i < msg.length(); i++)
         {
-            std::cout << std::hex << (int)((char)msg[i]) << " ";
+            std::cout << std::hex << ((int)msg[i]) << " ";
         }
         std::cout << std::endl;
-        msg = cipher->decrypt(msg);
+        msg = cipher->decryptCBC(msg, iv);
         std::cout << msg << std::endl;
         msg = "";
         std::getline(std::cin, msg);

@@ -28,8 +28,12 @@ class Block
 public:
 	Block(Header head, std::string prev);
 	Block(std::string str);
+	void changeNonce();
+	std::string getContents();
 	float getCoins(std::string user);
+	int getDifficulty();
 	~Block();
+	float calcReward();
 	bool addTransaction(Transaction* transaction);
 	std::string append();
 	bool mine();
@@ -37,6 +41,7 @@ public:
 	std::string getPrev();
 
 private:
+	static big nonce_assist;
 	std::vector<Transaction*> _data;
 	Header _header;
 	std::string _prevHash;

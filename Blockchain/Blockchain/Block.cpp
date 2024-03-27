@@ -1,11 +1,11 @@
 #include "Block.h"
 
+big Block::nonce_assist = 0;
+
 Block::Block(Header head, std::string prev)
 {
 	_header = head;
 	_prevHash = prev;
-	
-	
 }
 
 Block::Block(std::string str)
@@ -28,8 +28,31 @@ Block::Block(std::string str)
 			}
 		}
 	}
-	
-	
+}
+
+void Block::changeNonce()
+{
+	std::srand(time(NULL));
+	_header.nonce = std::rand() + nonce_assist;
+	nonce_assist++;
+}
+
+std::string Block::getContents()
+{
+	std::string transactions = "";
+	for (int i = 0; i < _data.size(); i++)
+	{
+		if (i == 0 && _data[i]->getSender() == "")
+		{
+			transactions += "Block reward of " + std::to_string(_data[i]->getSum()) + " transferred to " + _data[i]->getRecv() + " for mining\n";
+		}
+		else
+		{
+			transactions += _data[i]->getSender() + " transferred " + std::to_string(_data[i]->getSum()) + " to " + _data[i]->getRecv() + "\n";
+		}
+		
+	}
+	return transactions;
 }
 
 float Block::getCoins(std::string user)
@@ -47,6 +70,11 @@ float Block::getCoins(std::string user)
 		}
 	}
 	return sum;
+}
+
+int Block::getDifficulty()
+{
+	return std::stoi(_header.targetHash);
 }
 
 
@@ -74,6 +102,19 @@ Block::~Block()
 	{
 		delete _data[i];
 	}
+}
+
+float Block::calcReward()
+{
+	float reward = 50;
+	for (int i = 0; i < this->_data.size(); i++)
+	{
+		if (_data[i]->getSender() != "")
+		{
+			reward += _data[i]->getSum() / 10.0;
+		}
+	}
+	return reward;
 }
 
 bool Block::addTransaction(Transaction* transaction)
@@ -124,7 +165,15 @@ bool Block::mine()
 {
 	std::string rawData = append();
 	std::string hash = SHA256::conv(rawData);
-	//if()
-	return false;
+	for (int i = 0; i < std::stoi(_header.targetHash); i++)
+	{
+		if (hash[i] != '0');
+		{
+			this->changeNonce();
+			return false;
+		}
+	}
+	nonce_assist = 0;
+	return true;
 }
 

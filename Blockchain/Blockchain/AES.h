@@ -13,13 +13,10 @@ public:
 	~AES();
 	std::string encrypt(std::string input);
 	std::string decrypt(std::string input);
-	std::string encryptCBC(std::string input, unsigned char** iv);
-	std::string decryptCBC(std::string input, unsigned char** iv);
 	void setKey(std::string newKey);
-	unsigned char** setVector(std::string iv);
 	std::string getKey();
-	unsigned char** InitilizeVector();
 	void GKey();
+	static std::string trimString(std::string str);
 private:
 
     static const unsigned char sbox[HEX][HEX];
@@ -32,7 +29,6 @@ private:
 	void encryptBlock(unsigned char** state, unsigned char** pkey);
 	void decryptBlock(unsigned char** state, unsigned char** pkey);
 	int calcBlocks(std::string input);
-	
 	unsigned char*** matrixAndPadString(std::string input);
 	unsigned char*** allocateMatrixes(int size);
 	unsigned char** allocateMatrix(int size);

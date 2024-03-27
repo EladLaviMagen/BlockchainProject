@@ -19,19 +19,26 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AES.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="Blockchain.h" />
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="Helper.h" />
     <ClInclude Include="Merkle.h" />
+    <ClInclude Include="Peer.h" />
+    <ClInclude Include="Requests.h" />
     <ClInclude Include="RSA.h" />
     <ClInclude Include="SHA256.h" />
     <ClInclude Include="Transaction.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AES.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Blockchain.cpp" />
     <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="Helper.cpp" />
     <ClCompile Include="Merkle.cpp" />
+    <ClCompile Include="Peer.cpp" />
     <ClCompile Include="RSA.cpp" />
     <ClCompile Include="SHA256.cpp" />
     <ClCompile Include="Source.cpp" />

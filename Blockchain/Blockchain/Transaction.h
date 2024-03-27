@@ -2,6 +2,7 @@
 #include "RSA.h"
 #include "FileManager.h"
 
+
 #define DELIMETER '\n'
 #define SIG_DELIMETER '-'
 #define BADNUMBERS 0
@@ -15,8 +16,9 @@
 #define SUM 3
 
 #define KEY 0
-#define P 1
-#define Q 2
+#define RSA_P 1
+#define RSA_Q 2
+
 
 
 class Transaction
@@ -26,7 +28,7 @@ public:
 	Transaction(float sum, std::string sender, std::string reciever, big* enc);
 	Transaction(float sum, std::string sender, std::string reciever, longString sig);
 	Transaction(std::string str);
-	static int verify(Transaction t, big* dec);
+	int verify(big* dec);
 	std::string getRecv();
 	std::string getSender();
 	float getSum();
